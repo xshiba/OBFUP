@@ -20,6 +20,7 @@ local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
 
 local Themes = {
 	Names = {
+		"Amethyst Maru",
 		"Dark Typewriter",
 		"VSC Dark High Contrast",
 		"Dark",
@@ -122,6 +123,52 @@ local Themes = {
 		SubText = Color3.fromRGB(158, 158, 158),
 		Hover = Color3.fromRGB(149, 149, 149),
 		HoverChange = 0.04
+	},
+	["Amethyst Maru"] = {
+		Accent = Color3.fromHex("#1e6dbf"), -- Dark blue accent
+	
+		AcrylicMain = Color3.fromHex("#001a33"), -- Dark blue background
+		AcrylicBorder = Color3.fromHex("#004080"), -- Slightly lighter border
+		AcrylicGradient = ColorSequence.new(Color3.fromHex("#001a33"), Color3.fromHex("#001a33")),
+		AcrylicNoise = 0.92,
+	
+		TitleBarLine = Color3.fromHex("#004080"),
+		Tab = Color3.fromHex("#a1c4e6"), -- Light blue text
+	
+		Element = Color3.fromHex("#00264d"),
+		ElementBorder = Color3.fromHex("#004080"),
+		InElementBorder = Color3.fromHex("#1e6dbf"),
+		ElementTransparency = 0.85,
+	
+		ToggleSlider = Color3.fromHex("#0055a3"),
+		ToggleToggled = Color3.fromHex("#001a33"),
+	
+		SliderRail = Color3.fromHex("#0055a3"),
+	
+		DropdownFrame = Color3.fromHex("#00264d"),
+		DropdownHolder = Color3.fromHex("#00264d"),
+		DropdownBorder = Color3.fromHex("#004080"),
+		DropdownOption = Color3.fromHex("#a1c4e6"),
+	
+		Keybind = Color3.fromHex("#00264d"),
+	
+		Input = Color3.fromHex("#001933"),
+		InputFocused = Color3.fromHex("#001933"),
+		InputIndicator = Color3.fromHex("#7fa1bf"),
+	
+		Dialog = Color3.fromHex("#00264d"),
+		DialogHolder = Color3.fromHex("#001a33"),
+		DialogHolderLine = Color3.fromHex("#004080"),
+		DialogButton = Color3.fromHex("#00264d"),
+		DialogButtonBorder = Color3.fromHex("#004080"),
+		DialogBorder = Color3.fromHex("#004080"),
+		DialogInput = Color3.fromHex("#001933"),
+		DialogInputLine = Color3.fromHex("#1e6dbf"),
+	
+		Text = Color3.fromHex("#a1c4e6"), -- Light blue text for readability
+		SubText = Color3.fromHex("#7fa1bf"),
+		Hover = Color3.fromHex("#004080"),
+		HoverChange = 0.1
 	},
 	["Amethyst Dark"] = {
 		Accent = Color3.fromHex("#b133ff"),
@@ -1152,24 +1199,24 @@ Library.Creator = Creator
 
 local New = Creator.New
 
-function Library:GenerateUUID()
+-- function Library:GenerateUUID()
 
-    local function randomHex()
-        return string.format("%x", math.random(0, 15))
-    end
+--     local function randomHex()
+--         return string.format("%x", math.random(0, 15))
+--     end
 
-    local uuid = string.format(
-        "%08x-%04x-4%03x-%04x-%012x",
-        math.random(0, 0xFFFFFFFF),        -- First 8 hex digits
-        math.random(0, 0xFFFF),            -- Second 4 hex digits
-        math.random(0, 0xFFF),             -- Third 4 hex digits
-        math.random(0, 0xFFFF),            -- Fourth 4 hex digits
-        math.random(0, 0xFFFFFFFFFFFF)     -- Last 12 hex digits
-    )
-    return uuid
-end
+--     local uuid = string.format(
+--         "%08x-%04x-4%03x-%04x-%012x",
+--         math.random(0, 0xFFFFFFFF),        -- First 8 hex digits
+--         math.random(0, 0xFFFF),            -- Second 4 hex digits
+--         math.random(0, 0xFFF),             -- Third 4 hex digits
+--         math.random(0, 0xFFFF),            -- Fourth 4 hex digits
+--         math.random(0, 0xFFFFFFFFFFFF)     -- Last 12 hex digits
+--     )
+--     return uuid
+-- end
 
-local LibraryID = Library:GenerateUUID()
+local LibraryID = "Roblox/Ui"--Library:GenerateUUID()
 
 local PanelParent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui")
 local Panel = PanelParent:FindFirstChild(LibraryID)
@@ -1890,6 +1937,7 @@ Components.Tab = (function()
 			Tab.SetTransparency(Tab.Selected and 0.85 or 0.89)
 		end)
 		Creator.AddSignal(Tab.Frame.MouseButton1Click, function()
+			self.SelectedTab = TabIndex
 			TabModule:SelectTab(TabIndex)
 		end)
 
@@ -3172,6 +3220,10 @@ ElementsTable.Toggle = (function()
 			Library:SafeCallback(Toggle.Changed, Toggle.Value)
 		end
 
+		function Toggle:GetValue()
+			return self.Value
+		end
+
 		function Toggle:Destroy()
 			ToggleFrame:Destroy()
 			Library.Options[Idx] = nil
@@ -3712,6 +3764,10 @@ ElementsTable.Dropdown = (function()
 			Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
 		end
 
+		function Dropdown:GetValue()
+			return self.Value
+		end
+
 		function Dropdown:Destroy()
 			DropdownFrame:Destroy()
 			Library.Options[Idx] = nil
@@ -3947,6 +4003,10 @@ ElementsTable.Slider = (function()
 			Library:SafeCallback(Slider.Changed, self.Value)
 		end
 
+		function Slider:GetValue()
+			return self.Value
+		end
+
 		function Slider:Destroy()
 			SliderFrame:Destroy()
 			Library.Options[Idx] = nil
@@ -4065,6 +4125,10 @@ ElementsTable.Keybind = (function()
 			KeybindDisplayLabel.Text = Key
 			Keybind.Value = Key
 			Keybind.Mode = Mode
+		end
+
+		function Keybind:GetValue()
+			return self.Value
 		end
 
 		function Keybind:OnClick(Callback)
@@ -4678,6 +4742,7 @@ ElementsTable.Input = (function()
 		}
 
 		local InputFrame = Components.Element(Config.Title, Config.Description, self.Container, false)
+		InputFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
 
 		Input.SetTitle = InputFrame.SetTitle
 		Input.SetDesc = InputFrame.SetDesc
@@ -4709,6 +4774,10 @@ ElementsTable.Input = (function()
 
 			Library:SafeCallback(Input.Callback, Input.Value)
 			Library:SafeCallback(Input.Changed, Input.Value)
+		end
+
+		function Input:GetValue()
+			return self.Value
 		end
 
 		if Input.Finished then

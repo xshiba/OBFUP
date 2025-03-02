@@ -21,6 +21,7 @@ local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
 local Themes = {
 	Names = {
 		"Amethyst Maru",
+		"Crimson Dark",
 		"Dark Typewriter",
 		"VSC Dark High Contrast",
 		"Dark",
@@ -216,6 +217,98 @@ local Themes = {
 		Hover = Color3.fromHex("#4d057b"),
 		HoverChange = 0.1
 	},
+	["Crimson Dark"] = {
+		Accent = Color3.fromHex("#ff3333"), -- Bright Crimson Red
+	
+		AcrylicMain = Color3.fromHex("#240000"), -- Deep Maroon
+		AcrylicBorder = Color3.fromHex("#7b0505"), -- Dark Red
+		AcrylicGradient = ColorSequence.new(Color3.fromHex("#240000"), Color3.fromHex("#240000")),
+		AcrylicNoise = 0.92,
+	
+		TitleBarLine = Color3.fromHex("#7b0505"), -- Dark Red
+		Tab = Color3.fromHex("#f2d9d9"), -- Soft Pinkish White
+	
+		Element = Color3.fromHex("#3c0101"), -- Deep Red
+		ElementBorder = Color3.fromHex("#7b0505"), -- Dark Red
+		InElementBorder = Color3.fromHex("#ff3333"), -- Bright Crimson
+		ElementTransparency = 0.85,
+	
+		ToggleSlider = Color3.fromHex("#bf1616"), -- Rich Red
+		ToggleToggled = Color3.fromHex("#240000"), -- Deep Maroon
+	
+		SliderRail = Color3.fromHex("#bf1616"), -- Rich Red
+	
+		DropdownFrame = Color3.fromHex("#3c0101"), -- Deep Red
+		DropdownHolder = Color3.fromHex("#3c0101"), -- Deep Red
+		DropdownBorder = Color3.fromHex("#7b0505"), -- Dark Red
+		DropdownOption = Color3.fromHex("#f2d9d9"), -- Soft Pinkish White
+	
+		Keybind = Color3.fromHex("#3c0101"), -- Deep Red
+	
+		Input = Color3.fromHex("#300000"), -- Dark Maroon
+		InputFocused = Color3.fromHex("#300000"), -- Dark Maroon
+		InputIndicator = Color3.fromHex("#ad8585"), -- Muted Red
+	
+		Dialog = Color3.fromHex("#3c0101"), -- Deep Red
+		DialogHolder = Color3.fromHex("#240000"), -- Deep Maroon
+		DialogHolderLine = Color3.fromHex("#7b0505"), -- Dark Red
+		DialogButton = Color3.fromHex("#3c0101"), -- Deep Red
+		DialogButtonBorder = Color3.fromHex("#7b0505"), -- Dark Red
+		DialogBorder = Color3.fromHex("#7b0505"), -- Dark Red
+		DialogInput = Color3.fromHex("#300000"), -- Dark Maroon
+		DialogInputLine = Color3.fromHex("#ff3333"), -- Bright Crimson
+	
+		Text = Color3.fromHex("#f2d9d9"), -- Soft Pinkish White
+		SubText = Color3.fromHex("#ad8585"), -- Muted Red
+		Hover = Color3.fromHex("#7b0505"), -- Dark Red
+		HoverChange = 0.1
+	},
+	["Neon Crimson"] = {
+		Accent = Color3.fromHex("#ff0055"), -- Neon Red-Pink
+	
+		AcrylicMain = Color3.fromHex("#0a0005"), -- Deep Black-Red
+		AcrylicBorder = Color3.fromHex("#910027"), -- Intense Deep Red
+		AcrylicGradient = ColorSequence.new(Color3.fromHex("#0a0005"), Color3.fromHex("#0a0005")),
+		AcrylicNoise = 0.92,
+	
+		TitleBarLine = Color3.fromHex("#910027"), -- Deep Red Border
+		Tab = Color3.fromHex("#ffccd9"), -- Soft Neon Pink
+	
+		Element = Color3.fromHex("#220007"), -- Dark Red-Black
+		ElementBorder = Color3.fromHex("#910027"), -- Intense Deep Red
+		InElementBorder = Color3.fromHex("#ff0055"), -- Neon Red-Pink
+		ElementTransparency = 0.85,
+	
+		ToggleSlider = Color3.fromHex("#d40040"), -- Bright Crimson
+		ToggleToggled = Color3.fromHex("#0a0005"), -- Deep Black-Red
+	
+		SliderRail = Color3.fromHex("#d40040"), -- Bright Crimson
+	
+		DropdownFrame = Color3.fromHex("#220007"), -- Dark Red-Black
+		DropdownHolder = Color3.fromHex("#220007"), -- Dark Red-Black
+		DropdownBorder = Color3.fromHex("#910027"), -- Intense Deep Red
+		DropdownOption = Color3.fromHex("#ffccd9"), -- Soft Neon Pink
+	
+		Keybind = Color3.fromHex("#220007"), -- Dark Red-Black
+	
+		Input = Color3.fromHex("#140005"), -- Deep Black-Red
+		InputFocused = Color3.fromHex("#140005"), -- Deep Black-Red
+		InputIndicator = Color3.fromHex("#ff8099"), -- Soft Neon Red
+	
+		Dialog = Color3.fromHex("#220007"), -- Dark Red-Black
+		DialogHolder = Color3.fromHex("#0a0005"), -- Deep Black-Red
+		DialogHolderLine = Color3.fromHex("#910027"), -- Intense Deep Red
+		DialogButton = Color3.fromHex("#220007"), -- Dark Red-Black
+		DialogButtonBorder = Color3.fromHex("#910027"), -- Intense Deep Red
+		DialogBorder = Color3.fromHex("#910027"), -- Intense Deep Red
+		DialogInput = Color3.fromHex("#140005"), -- Deep Black-Red
+		DialogInputLine = Color3.fromHex("#ff0055"), -- Neon Red-Pink
+	
+		Text = Color3.fromHex("#ffccd9"), -- Soft Neon Pink
+		SubText = Color3.fromHex("#ff8099"), -- Soft Neon Red
+		Hover = Color3.fromHex("#910027"), -- Intense Deep Red
+		HoverChange = 0.1
+	},	
 	Dark = {
 		Name = "Dark",
 		Accent = Color3.fromRGB(96, 205, 255),
@@ -1045,6 +1138,7 @@ local Creator = {
 			TextColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 1,
 			TextSize = 14,
+			AutoLocalize = false,
 		},
 		TextButton = {
 			BackgroundColor3 = Color3.new(1, 1, 1),
@@ -1218,7 +1312,8 @@ local New = Creator.New
 
 local LibraryID = "Roblox/Ui"--Library:GenerateUUID()
 
-local PanelParent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui")
+--local PanelParent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui")
+local PanelParent = LocalPlayer.PlayerGui
 local Panel = PanelParent:FindFirstChild(LibraryID)
 if Panel then
     Panel:Destroy()
@@ -1617,6 +1712,7 @@ Components.Element = (function()
 			Size = UDim2.new(1, 0, 0, 14),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -1633,6 +1729,7 @@ Components.Element = (function()
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 14),
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "SubText",
 			},
@@ -1783,6 +1880,7 @@ Components.Section = (function()
 				TextYAlignment = "Center",
 				Size = UDim2.new(1, -16, 0, 18),
 				Position = UDim2.fromOffset(0, 2),
+				AutoLocalize = false,
 				ThemeTag = {
 					TextColor3 = "Text",
 				},
@@ -1809,6 +1907,7 @@ Components.Tab = (function()
 		Containers = {},
 		SelectedTab = 0,
 		TabCount = 0,
+		Callback = function()end
 	}
 
 	function TabModule:Init(Window)
@@ -1834,7 +1933,6 @@ Components.Tab = (function()
 			Selected = false,
 			Name = Title,
 			Type = "Tab",
-			TabIndex = TabIndex,
 		}
 
 		if Library:GetIcon(Icon) then
@@ -1873,6 +1971,7 @@ Components.Tab = (function()
 				TextYAlignment = "Center",
 				Size = UDim2.new(1, -12, 1, 0),
 				BackgroundTransparency = 1,
+				AutoLocalize = false,
 				ThemeTag = {
 					TextColor3 = "Text",
 				},
@@ -1937,8 +2036,8 @@ Components.Tab = (function()
 			Tab.SetTransparency(Tab.Selected and 0.85 or 0.89)
 		end)
 		Creator.AddSignal(Tab.Frame.MouseButton1Click, function()
-			self.SelectedTab = TabIndex
 			TabModule:SelectTab(TabIndex)
+			TabModule.Callback(TabIndex)
 		end)
 
 		TabModule.Containers[TabIndex] = Tab.ContainerFrame
@@ -1963,7 +2062,7 @@ Components.Tab = (function()
 	end
 
 	function TabModule:GetCurrentTab()
-		return TabModule.SelectedTab
+		return self.SelectedTab
 	end
 
 	function TabModule:SelectTab(Tab)
@@ -2020,6 +2119,7 @@ Components.Button = (function()
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -2152,6 +2252,7 @@ Components.Dialog = (function()
 			Position = UDim2.fromOffset(20, 25),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -2286,6 +2387,7 @@ Components.Notification = (function()
 			Size = UDim2.new(1, -12, 0, 12),
 			TextWrapped = true,
 			BackgroundTransparency = 1,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -2302,6 +2404,7 @@ Components.Notification = (function()
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -2318,6 +2421,7 @@ Components.Notification = (function()
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			TextWrapped = true,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "SubText",
 			},
@@ -2645,6 +2749,7 @@ Components.TitleBar = (function()
 					Size = UDim2.fromScale(0, 1),
 					AutomaticSize = Enum.AutomaticSize.X,
 					BackgroundTransparency = 1,
+					AutoLocalize = false,
 					ThemeTag = {
 						TextColor3 = "Text",
 					},
@@ -2664,6 +2769,7 @@ Components.TitleBar = (function()
 					Size = UDim2.fromScale(0, 1),
 					AutomaticSize = Enum.AutomaticSize.X,
 					BackgroundTransparency = 1,
+					AutoLocalize = false,
 					ThemeTag = {
 						TextColor3 = "Text",
 					},
@@ -2786,6 +2892,7 @@ Components.Window = (function()
 			Size = UDim2.new(1, -16, 0, 28),
 			Position = UDim2.fromOffset(Window.TabWidth + 26, 56),
 			BackgroundTransparency = 1,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -3053,6 +3160,7 @@ Components.Window = (function()
 				BackgroundTransparency = 1,
 				Parent = Dialog.Root,
 				ClipsDescendants = false,
+				AutoLocalize = false,
 				ThemeTag = {
 					TextColor3 = "Text",
 				},
@@ -3085,6 +3193,10 @@ Components.Window = (function()
 
 		function Window:GetCurrentTab()
 			return TabModule:GetCurrentTab()
+		end
+
+		function Window:TabChanged(func)
+			TabModule.Callback = func
 		end
 
 		function Window:SelectTab(Tab)
@@ -3288,6 +3400,7 @@ ElementsTable.Dropdown = (function()
 			BackgroundTransparency = 1,
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			Interactable = Dropdown.Searchable,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 				PlaceholderColor3 = "Text"
@@ -3312,6 +3425,7 @@ ElementsTable.Dropdown = (function()
 			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundTransparency = 0.9,
 			Parent = DropdownFrame.Frame,
+			AutoLocalize = false,
 			ThemeTag = {
 				BackgroundColor3 = "DropdownFrame",
 			},
@@ -3405,9 +3519,10 @@ ElementsTable.Dropdown = (function()
 		end
 
 		local ListSizeX = 0
+		local MAX_DROPDOWN_ITEMS = 5
 		local function RecalculateListSize()
-			if #Dropdown.Values > 10 then
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, 392)
+			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, (39 * MAX_DROPDOWN_ITEMS) - 13)
 			else
 				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10)
 			end
@@ -3529,9 +3644,9 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Display()
 			local Values = Dropdown.Values
 			local Str = ""
-
+			
 			if Config.Multi then
-				for Idx, Value in next, Values do
+				for Idx, Value in next,Values do
 					if Dropdown.Value[Value] then
 						Str = Str .. Value .. ", "
 					end
@@ -3610,6 +3725,7 @@ ElementsTable.Dropdown = (function()
 					Size = UDim2.fromScale(1, 1),
 					Position = UDim2.fromOffset(10, 0),
 					Name = "ButtonLabel",
+					AutoLocalize = false,
 					ThemeTag = {
 						TextColor3 = "Text",
 					},
@@ -4059,6 +4175,7 @@ ElementsTable.Keybind = (function()
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			AutomaticSize = Enum.AutomaticSize.X,
 			BackgroundTransparency = 1,
+			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
 			},
@@ -4314,6 +4431,7 @@ ElementsTable.Colorpicker = (function()
 					Position = Pos,
 					BackgroundTransparency = 1,
 					Parent = Dialog.Root,
+					AutoLocalize = false,
 					ThemeTag = {
 						TextColor3 = "Text",
 					},
@@ -4755,6 +4873,7 @@ ElementsTable.Input = (function()
 		Textbox.Frame.Size = UDim2.fromOffset(160, 30)
 		Textbox.Input.Text = Config.Default or ""
 		Textbox.Input.PlaceholderText = Config.Placeholder or ""
+		Textbox.MultiLine = Config.MultiLine or false
 
 		local Box = Textbox.Input
 
@@ -6144,100 +6263,106 @@ function Library:CreateWindow(Config)
 
 	local Dragging, DragInput, MousePos, StartPos = false
 
-	local MinimizeButton = New("TextButton", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-		BorderSizePixel = 0
-	}, {
-		New("UIPadding", {
-			PaddingBottom = UDim.new(0, 2),
-			PaddingLeft = UDim.new(0, 2),
-			PaddingRight = UDim.new(0, 2),
-			PaddingTop = UDim.new(0, 2),
-		}),
-		New("ImageLabel", {
-			Image = Config.MinimizerIcon or "rbxassetid://9681970193",
-			Size = UDim2.new(1, 0, 1, 0),
+	if not Config.NoMinimize then
+		local MinimizeButton = New("TextButton", {
 			BackgroundTransparency = 1,
-		}, {
-			New("UIAspectRatioConstraint", {
-				AspectRatio = 1,
-				AspectType = Enum.AspectType.FitWithinMaxSize,
-			})
-		})
-	})
-
-	local Minimizer = New("Frame", {
-		Parent = GUI,
-		Size = UDim2.new(0, 60, 0, 60),
-		Position = UDim2.new(0.45, 0, 0.025, 0),
-		BackgroundTransparency = 1,
-		ZIndex = 999999999,
-	},
-	{
-		New("Frame", {
-			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 			Size = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 0.5,
 			BorderSizePixel = 0
 		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0.25, 0),
+			New("UIPadding", {
+				PaddingBottom = UDim.new(0, 2),
+				PaddingLeft = UDim.new(0, 2),
+				PaddingRight = UDim.new(0, 2),
+				PaddingTop = UDim.new(0, 2),
 			}),
-			MinimizeButton
+			New("ImageLabel", {
+				Image = Config.MinimizerIcon or "rbxassetid://9681970193",
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+			}, {
+				New("UIAspectRatioConstraint", {
+					AspectRatio = 1,
+					AspectType = Enum.AspectType.FitWithinMaxSize,
+				})
+			})
 		})
-	})
 
-	Creator.AddSignal(Minimizer.InputBegan, function(Input)
-		if
-			Input.UserInputType == Enum.UserInputType.MouseButton1
-			or Input.UserInputType == Enum.UserInputType.Touch
-		then
-			Dragging = true
-			MousePos = Input.Position
-			StartPos = Minimizer.Position
-
-			Input.Changed:Connect(function()
-				if Input.UserInputState == Enum.UserInputState.End then
-					Dragging = false
-				end
-			end)
-		end
-	end)
-
-	Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
-		if
-			Input.UserInputType == Enum.UserInputType.MouseButton1
-			or Input.UserInputType == Enum.UserInputType.Touch
-		then
-			Dragging = true
-			MousePos = Input.Position
-			StartPos = Minimizer.Position
-
-			Input.Changed:Connect(function()
-				if Input.UserInputState == Enum.UserInputState.End then
-					Dragging = false
-				end
-			end)
-		end
-	end)
-
-	Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
-		if
-			Input.UserInputType == Enum.UserInputType.MouseMovement
-			or Input.UserInputType == Enum.UserInputType.Touch
-		then
-			DragInput = Input
-		end
-	end)
-	Creator.AddSignal(Minimizer.InputChanged, function(Input)
-		if
-			Input.UserInputType == Enum.UserInputType.MouseMovement
-			or Input.UserInputType == Enum.UserInputType.Touch
-		then
-			DragInput = Input
-		end
-	end)
+		local Minimizer = New("Frame", {
+			Parent = GUI,
+			Size = UDim2.new(0, 60, 0, 60),
+			Position = UDim2.new(0.45, 0, 0.025, 0),
+			BackgroundTransparency = 1,
+			ZIndex = 999999999,
+		},
+		{
+			New("Frame", {
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 0.5,
+				BorderSizePixel = 0
+			}, {
+				New("UICorner", {
+					CornerRadius = UDim.new(0.25, 0),
+				}),
+				MinimizeButton
+			})
+		})
+	
+		Creator.AddSignal(Minimizer.InputBegan, function(Input)
+			if
+				Input.UserInputType == Enum.UserInputType.MouseButton1
+				or Input.UserInputType == Enum.UserInputType.Touch
+			then
+				Dragging = true
+				MousePos = Input.Position
+				StartPos = Minimizer.Position
+	
+				Input.Changed:Connect(function()
+					if Input.UserInputState == Enum.UserInputState.End then
+						Dragging = false
+					end
+				end)
+			end
+		end)
+	
+		Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
+			if
+				Input.UserInputType == Enum.UserInputType.MouseButton1
+				or Input.UserInputType == Enum.UserInputType.Touch
+			then
+				Dragging = true
+				MousePos = Input.Position
+				StartPos = Minimizer.Position
+	
+				Input.Changed:Connect(function()
+					if Input.UserInputState == Enum.UserInputState.End then
+						Dragging = false
+					end
+				end)
+			end
+		end)
+	
+		Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
+			if
+				Input.UserInputType == Enum.UserInputType.MouseMovement
+				or Input.UserInputType == Enum.UserInputType.Touch
+			then
+				DragInput = Input
+			end
+		end)
+		Creator.AddSignal(Minimizer.InputChanged, function(Input)
+			if
+				Input.UserInputType == Enum.UserInputType.MouseMovement
+				or Input.UserInputType == Enum.UserInputType.Touch
+			then
+				DragInput = Input
+			end
+		end)
+	
+		AddSignal(MinimizeButton.MouseButton1Click, function()
+			Window:Minimize()
+		end)
+	end
 
 	Creator.AddSignal(UserInputService.InputChanged, function(Input)
 		if Input == DragInput and Dragging then
@@ -6265,10 +6390,6 @@ function Library:CreateWindow(Config)
 			
 			Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
 		end
-	end)
-
-	AddSignal(MinimizeButton.MouseButton1Click, function()
-		Window:Minimize()
 	end)
 
 	return Window

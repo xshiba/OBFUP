@@ -1,6 +1,7 @@
-local mt = getrawmetatable(game)
+getgenv().mt = getrawmetatable(game)
 setreadonly(mt,false)
-local old = mt.__namecall
+getgenv().oldindex = mt.__index
+getgenv().oldnamecall = mt.__namecall
 mt.__namecall = newcclosure(function(...)
     local method = getnamecallmethod()
     local args = {...}
@@ -12,10 +13,10 @@ mt.__namecall = newcclosure(function(...)
     not (Options.AutoFarmSeaEvents.Value) and
     not (Options.AutoFinishTrail.Value) and
     not (Options.AutoFarmSeaBeasts.Value) then
-        return old(unpack(args))
+        return oldnamecall(unpack(args))
     end
     if Dontaim then
-        return old(unpack(args))
+        return oldnamecall(unpack(args))
     end
     if tostring(method) == "FireServer" then
         if tostring(args[1]) == "RemoteEvent" then
@@ -27,7 +28,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = _G.TargetPlayerAim.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if Options.AutoFarmPlayer.Value and PosCharacter ~= nil then
@@ -37,7 +38,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = PosCharacter.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if UseSkill then
@@ -47,7 +48,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = PosMonMasteryFruit.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if USEGUN then
@@ -57,7 +58,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = PosMonMasteryGun.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if SeaEventsEnabled and Options.AutoFarmSeaEvents.Value then
@@ -67,7 +68,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = SeaEventsPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if FindShip and Options.AutoFarmSeaEvents.Value then
@@ -77,7 +78,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = ShipPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if StartSub and Options.AutoCompleteTrial.Value then
@@ -87,7 +88,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = SeaBeastPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if FindSeabeast and Options.AutoFarmSeaBeasts.Value then
@@ -97,7 +98,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[2])) == "Vector3" then
                             args[2] = SeaBeastPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
             end
@@ -112,7 +113,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = _G.TargetPlayerAim.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if Options.AutoFarmPlayer.Value and PosCharacter ~= nil then
@@ -122,7 +123,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = PosCharacter.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if Options.AutoFarmBounty.Value and PosCharacterBounty ~= nil then
@@ -132,7 +133,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = PosCharacterBounty.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if UseSkill then
@@ -142,7 +143,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = PosMonMasteryFruit.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if USEGUN then
@@ -152,7 +153,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = PosMonMasteryGun.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if SeaEventsEnabled and Options.AutoFarmSeaEvents.Value then
@@ -162,7 +163,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = SeaEventsPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if FindShip and Options.AutoFarmSeaEvents.Value then
@@ -172,7 +173,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = ShipPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if StartSub and Options.AutoCompleteTrial.Value then
@@ -182,7 +183,7 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = SeaBeastPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
                 if FindSeabeast and Options.AutoFarmSeaBeasts.Value then
@@ -192,11 +193,11 @@ mt.__namecall = newcclosure(function(...)
                         elseif tostring(typeof(args[3])) == "Vector3" then
                             args[3] = SeaBeastPos.Position
                         end
-                        return old(unpack(args))
+                        return oldnamecall(unpack(args))
                     end
                 end
             end
         end
     end 
-    return old(...)
+    return oldnamecall(...)
 end)

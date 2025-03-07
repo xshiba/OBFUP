@@ -1327,6 +1327,32 @@ local GUI = New("ScreenGui", {
 Library.GUI = GUI
 ProtectGui(GUI)
 
+function Library:SafeCallbackToggles(Title, Function, ...)
+	if not Function then
+		return
+	end
+
+	local Success, Event = pcall(Function, ...)
+	if not Success then
+		local _, i = Event:find(":%d+: ")
+
+		if not i then
+			return Library:Notify({
+				Title = "Interface",
+				Content = "Callback error",
+				SubContent = Title,
+				Duration = 5,
+			})
+		end
+
+		return Library:Notify({
+			Title = "Interface",
+			Content = "Callback error",
+			SubContent = Title,
+			Duration = 5,
+		})
+	end
+end
 function Library:SafeCallback(Function, ...)
 	if not Function then
 		return
@@ -3328,8 +3354,8 @@ ElementsTable.Toggle = (function()
 			):Play()
 			ToggleCircle.ImageTransparency = Toggle.Value and 0 or 0.5
 
-			Library:SafeCallback(Toggle.Callback, Toggle.Value)
-			Library:SafeCallback(Toggle.Changed, Toggle.Value)
+			Library:SafeCallbackToggles(Config.Title, Toggle.Callback, Toggle.Value)
+			Library:SafeCallbackToggles(Config.Title, Toggle.Changed, Toggle.Value)
 		end
 
 		function Toggle:GetValue()
@@ -3344,10 +3370,15 @@ ElementsTable.Toggle = (function()
 		Creator.AddSignal(ToggleFrame.Frame.MouseButton1Click, function()
 			Toggle:SetValue(not Toggle.Value)
 		end)
-
-		Toggle:SetValue(Toggle.Value)
-
-		Library.Options[Idx] = Toggle
+		
+		task.spawn(function()
+			while not (Fluent and Fluent.Loaded) do task.wait()
+			end		
+			if Toggle then
+				Toggle:SetValue(Toggle.Value)
+				Library.Options[Idx] = Toggle
+			end
+		end)		
 		return Toggle
 	end
 

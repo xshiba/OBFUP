@@ -3354,8 +3354,10 @@ ElementsTable.Toggle = (function()
 			):Play()
 			ToggleCircle.ImageTransparency = Toggle.Value and 0 or 0.5
 
-			Library:SafeCallbackToggles(Config.Title, Toggle.Callback, Toggle.Value)
-			Library:SafeCallbackToggles(Config.Title, Toggle.Changed, Toggle.Value)
+			if Fluent and Fluent.Loaded then
+				Library:SafeCallbackToggles(Config.Title, Toggle.Callback, Toggle.Value)
+				Library:SafeCallbackToggles(Config.Title, Toggle.Changed, Toggle.Value)
+			end
 		end
 
 		function Toggle:GetValue()
@@ -3370,10 +3372,8 @@ ElementsTable.Toggle = (function()
 		Creator.AddSignal(ToggleFrame.Frame.MouseButton1Click, function()
 			Toggle:SetValue(not Toggle.Value)
 		end)
-		
-		if Fluent and Fluent.Loaded then
-			Toggle:SetValue(Toggle.Value)
-		end
+
+		Toggle:SetValue(Toggle.Value)
 
 		Library.Options[Idx] = Toggle	
 		return Toggle

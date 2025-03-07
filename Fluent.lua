@@ -3371,14 +3371,11 @@ ElementsTable.Toggle = (function()
 			Toggle:SetValue(not Toggle.Value)
 		end)
 		
-		task.spawn(function()
-			while not (Fluent and Fluent.Loaded) do task.wait()
-			end		
-			if Toggle then
-				Toggle:SetValue(Toggle.Value)
-				Library.Options[Idx] = Toggle
-			end
-		end)		
+		if Fluent and Fluent.Loaded then
+			Toggle:SetValue(Toggle.Value)
+		end
+
+		Library.Options[Idx] = Toggle	
 		return Toggle
 	end
 

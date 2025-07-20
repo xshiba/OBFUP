@@ -1393,7 +1393,7 @@ local New = Creator.New
 
 local LibraryID = "Roblox/Ui"
 
-local PanelParent = LocalPlayer.PlayerGui
+local PanelParent = game:GetService("CoreGui")
 local Panel = PanelParent:FindFirstChild(LibraryID)
 if Panel then
 	Panel:Destroy()

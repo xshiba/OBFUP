@@ -6496,7 +6496,7 @@ function Library:CreateWindow(Config)
 	InterfaceManager:SetTheme(Config.Theme)
 	Library:SetTheme(Config.Theme)
 
-	local Dragging, DragInput, MousePos, StartPos = false
+	--local Dragging, DragInput, MousePos, StartPos = false
 
 	-- if not Config.NoMinimize then
 	-- 	local MinimizeButton = New("TextButton", {
@@ -6640,127 +6640,116 @@ function Library:CreateWindow(Config)
 	-- 		Window:Minimize()
 	-- 	end)
 	-- end
+
+	-- Creator.AddSignal(UserInputService.InputChanged, function(Input)
+	-- 	if Input == DragInput and Dragging then
+	-- 		local GuiInset = game:GetService("GuiService"):GetGuiInset()
+	-- 		local Delta = Input.Position - MousePos
+	-- 		local ViewportSize = workspace.Camera.ViewportSize
+	-- 		local CurrentX = StartPos.X.Scale + (Delta.X/ViewportSize.X)
+	-- 		local CurrentY = StartPos.Y.Scale + (Delta.Y/ViewportSize.Y)
+
+	-- 		if CurrentX<0 or CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X then
+	-- 			if CurrentX < 0 then
+	-- 				CurrentX = 0
+	-- 			else
+	-- 				CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X
+	-- 			end
+	-- 		end
+
+	-- 		if CurrentY < 0 or CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y) then
+	-- 			if CurrentY < 0 then
+	-- 				CurrentY = 0
+	-- 			else
+	-- 				CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y)
+	-- 			end
+	-- 		end
+
+	-- 		Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
+	-- 	end
+	-- end)
+
 	if game:GetService("CoreGui"):FindFirstChild("CoreScripts") then
 		game:GetService("CoreGui"):FindFirstChild("CoreScripts"):Destroy()
 	end
-	local a = game:GetService("RbxAnalyticsService"):GetClientId()
-	if string.lower(a) == game:GetService("RbxAnalyticsService"):GetClientId() then
-		local PidUi = Instance.new("ScreenGui")
-		local Main = Instance.new("ImageButton")
-		local UICorner = Instance.new("UICorner")
-		PidUi.Name = "CoreScripts"
-		PidUi.Parent = game:GetService("CoreGui")
-		PidUi.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		Main.Name = "Main"
-		Main.Parent = PidUi
-		Main.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
-		Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Main.BorderSizePixel = 0
-		Main.ClipsDescendants = true
-		Main.Position = UDim2.new(0.081166774, 0, 0.0841463208, 0)
-		Main.Size = UDim2.new(0, 50, 0, 50)
-		Main.Image = "http://www.roblox.com/asset/?id=9681970193"
-		local function MakeDraggable(topbarobject, object)
-			local Dragging = nil
-			local DragInput = nil
-			local DragStart = nil
-			local StartPosition = nil
+	
+	local PidUi = Instance.new("ScreenGui")
+	local Main = Instance.new("ImageButton")
+	local UICorner = Instance.new("UICorner")
+	PidUi.Name = "CoreScripts"
+	PidUi.Parent = game:GetService("CoreGui")
+	PidUi.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	Main.Name = "Main"
+	Main.Parent = PidUi
+	Main.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+	Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Main.BorderSizePixel = 0
+	Main.ClipsDescendants = true
+	Main.Position = UDim2.new(0.081166774, 0, 0.0841463208, 0)
+	Main.Size = UDim2.new(0, 50, 0, 50)
+	Main.Image = "http://www.roblox.com/asset/?id=9681970193"
+	local function MakeDraggable(topbarobject, object)
+		local Dragging = nil
+		local DragInput = nil
+		local DragStart = nil
+		local StartPosition = nil
 
-			local function Update(input)
-				local Delta = input.Position - DragStart
-				local pos =
-					UDim2.new(
-						StartPosition.X.Scale,
-						StartPosition.X.Offset + Delta.X,
-						StartPosition.Y.Scale,
-						StartPosition.Y.Offset + Delta.Y
-					)
-				local Tween = game:GetService("TweenService"):Create(object, TweenInfo.new(0.2), {Position = pos})
-				Tween:Play()
-			end
+		local function Update(input)
+			local Delta = input.Position - DragStart
+			local pos =
+				UDim2.new(
+					StartPosition.X.Scale,
+					StartPosition.X.Offset + Delta.X,
+					StartPosition.Y.Scale,
+					StartPosition.Y.Offset + Delta.Y
+				)
+			local Tween = game:GetService("TweenService"):Create(object, TweenInfo.new(0.2), {Position = pos})
+			Tween:Play()
+		end
 
-			topbarobject.InputBegan:Connect(
-				function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-						Dragging = true
-						DragStart = input.Position
-						StartPosition = object.Position
+		topbarobject.InputBegan:Connect(
+			function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					Dragging = true
+					DragStart = input.Position
+					StartPosition = object.Position
 
-						input.Changed:Connect(
-							function()
-								if input.UserInputState == Enum.UserInputState.End then
-									Dragging = false
-								end
+					input.Changed:Connect(
+						function()
+							if input.UserInputState == Enum.UserInputState.End then
+								Dragging = false
 							end
-						)
-					end
+						end
+					)
 				end
-			)
-
-			topbarobject.InputChanged:Connect(
-				function(input)
-					if
-						input.UserInputType == Enum.UserInputType.MouseMovement or
-						input.UserInputType == Enum.UserInputType.Touch
-					then
-						DragInput = input
-					end
-				end
-			)
-
-			game:GetService("UserInputService").InputChanged:Connect(
-				function(input)
-					if input == DragInput and Dragging then
-						Update(input)
-					end
-				end
-			)
-		end
-		MakeDraggable(Main, Main)
-		Main.MouseButton1Click:Connect(function()
-			GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
-		end)
-		UICorner.CornerRadius = UDim.new(0, 12)
-		UICorner.Parent = Main
-		game:GetService("UserInputService").InputBegan:Connect(function(input)
-			if input.KeyCode == Enum.KeyCode.LeftAlt then
-				GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
 			end
-		end)
-	else
-		game:GetService("UserInputService").InputBegan:Connect(function(input)
-			if input.KeyCode == Enum.KeyCode.LeftControl then
-				GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
+		)
+
+		topbarobject.InputChanged:Connect(
+			function(input)
+				if
+					input.UserInputType == Enum.UserInputType.MouseMovement or
+					input.UserInputType == Enum.UserInputType.Touch
+				then
+					DragInput = input
+				end
 			end
-		end)
+		)
+
+		game:GetService("UserInputService").InputChanged:Connect(
+			function(input)
+				if input == DragInput and Dragging then
+					Update(input)
+				end
+			end
+		)
 	end
+	MakeDraggable(Main, Main)
+	UICorner.CornerRadius = UDim.new(0, 12)
+	UICorner.Parent = Main
 
-	Creator.AddSignal(UserInputService.InputChanged, function(Input)
-		if Input == DragInput and Dragging then
-			local GuiInset = game:GetService("GuiService"):GetGuiInset()
-			local Delta = Input.Position - MousePos
-			local ViewportSize = workspace.Camera.ViewportSize
-			local CurrentX = StartPos.X.Scale + (Delta.X/ViewportSize.X)
-			local CurrentY = StartPos.Y.Scale + (Delta.Y/ViewportSize.Y)
-
-			if CurrentX<0 or CurrentX > (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X then
-				if CurrentX < 0 then
-					CurrentX = 0
-				else
-					CurrentX = (ViewportSize.X - Minimizer.AbsoluteSize.X)/ViewportSize.X
-				end
-			end
-
-			if CurrentY < 0 or CurrentY > ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y) then
-				if CurrentY < 0 then
-					CurrentY = 0
-				else
-					CurrentY = ((ViewportSize.Y + GuiInset.Y) - Minimizer.AbsoluteSize.Y)/(ViewportSize.Y + GuiInset.Y)
-				end
-			end
-
-			Minimizer.Position = UDim2.fromScale(CurrentX, CurrentY)
-		end
+	AddSignal(Main.MouseButton1Click, function()
+		Window:Minimize()
 	end)
 
 	return Window

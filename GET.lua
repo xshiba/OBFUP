@@ -6498,146 +6498,240 @@ function Library:CreateWindow(Config)
 
 	local Dragging, DragInput, MousePos, StartPos = false
 
-	if not Config.NoMinimize then
-		local MinimizeButton = New("TextButton", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			BorderSizePixel = 0
-		}, {
-			New("UIPadding", {
-				PaddingBottom = UDim.new(0, 2),
-				PaddingLeft = UDim.new(0, 2),
-				PaddingRight = UDim.new(0, 2),
-				PaddingTop = UDim.new(0, 2),
-			}),
-			New("ImageLabel", {
-				Image = Config.MinimizerIcon or "rbxassetid://9681970193",
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundTransparency = 1,
-			}, {
-				New("UIAspectRatioConstraint", {
-					AspectRatio = 1,
-					AspectType = Enum.AspectType.FitWithinMaxSize,
-				})
-			})
-		})
+	-- if not Config.NoMinimize then
+	-- 	local MinimizeButton = New("TextButton", {
+	-- 		BackgroundTransparency = 1,
+	-- 		Size = UDim2.new(1, 0, 1, 0),
+	-- 		BorderSizePixel = 0
+	-- 	}, {
+	-- 		New("UIPadding", {
+	-- 			PaddingBottom = UDim.new(0, 2),
+	-- 			PaddingLeft = UDim.new(0, 2),
+	-- 			PaddingRight = UDim.new(0, 2),
+	-- 			PaddingTop = UDim.new(0, 2),
+	-- 		}),
+	-- 		New("ImageLabel", {
+	-- 			Image = Config.MinimizerIcon or "rbxassetid://9681970193",
+	-- 			Size = UDim2.new(1, 0, 1, 0),
+	-- 			BackgroundTransparency = 1,
+	-- 		}, {
+	-- 			New("UIAspectRatioConstraint", {
+	-- 				AspectRatio = 1,
+	-- 				AspectType = Enum.AspectType.FitWithinMaxSize,
+	-- 			})
+	-- 		})
+	-- 	})
 
-		local Minimizer = New("Frame", {
-			Parent = GUI,
-			Size = UDim2.new(0, 60, 0, 60),
-			Position = UDim2.new(0.45, 0, 0.025, 0),
-			BackgroundTransparency = 1,
-			ZIndex = 999999999,
-		},
-		{
-			New("Frame", {
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				Size = UDim2.new(1, 0, 1, 0),
-				BackgroundTransparency = 0.5,
-				BorderSizePixel = 0
-			}, {
-				New("UICorner", {
-					CornerRadius = UDim.new(0.25, 0),
-				}),
-				MinimizeButton
-			})
-		})
+	-- 	local Minimizer = New("Frame", {
+	-- 		Parent = GUI,
+	-- 		Size = UDim2.new(0, 60, 0, 60),
+	-- 		Position = UDim2.new(0.45, 0, 0.025, 0),
+	-- 		BackgroundTransparency = 1,
+	-- 		ZIndex = 999999999,
+	-- 	},
+	-- 	{
+	-- 		New("Frame", {
+	-- 			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+	-- 			Size = UDim2.new(1, 0, 1, 0),
+	-- 			BackgroundTransparency = 0.5,
+	-- 			BorderSizePixel = 0
+	-- 		}, {
+	-- 			New("UICorner", {
+	-- 				CornerRadius = UDim.new(0.25, 0),
+	-- 			}),
+	-- 			MinimizeButton
+	-- 		})
+	-- 	})
 
-		local Dragging = false
-		local DragInput = nil
-		local MousePos = nil
-		local StartPos = nil
+	-- 	local Dragging = false
+	-- 	local DragInput = nil
+	-- 	local MousePos = nil
+	-- 	local StartPos = nil
 
-		local RunService = game:GetService("RunService")
-		local updateConnection
+	-- 	local RunService = game:GetService("RunService")
+	-- 	local updateConnection
 
-		local TweenService = game:GetService("TweenService")
-		local tweenInfo = TweenInfo.new(
-			0.1,
-			Enum.EasingStyle.Quad,
-			Enum.EasingDirection.Out
-		)
+	-- 	local TweenService = game:GetService("TweenService")
+	-- 	local tweenInfo = TweenInfo.new(
+	-- 		0.1,
+	-- 		Enum.EasingStyle.Quad,
+	-- 		Enum.EasingDirection.Out
+	-- 	)
 
-		local function ClampPosition(position)
-			local screenSize = workspace.CurrentCamera.ViewportSize
-			local frameSize = Minimizer.AbsoluteSize
+	-- 	local function ClampPosition(position)
+	-- 		local screenSize = workspace.CurrentCamera.ViewportSize
+	-- 		local frameSize = Minimizer.AbsoluteSize
 
-			local minX = 0
-			local maxX = screenSize.X - frameSize.X
-			local minY = 0
-			local maxY = screenSize.Y - frameSize.Y
+	-- 		local minX = 0
+	-- 		local maxX = screenSize.X - frameSize.X
+	-- 		local minY = 0
+	-- 		local maxY = screenSize.Y - frameSize.Y
 
-			local newX = math.clamp(position.X.Offset, minX, maxX)
-			local newY = math.clamp(position.Y.Offset, minY, maxY)
+	-- 		local newX = math.clamp(position.X.Offset, minX, maxX)
+	-- 		local newY = math.clamp(position.Y.Offset, minY, maxY)
 
-			return UDim2.new(position.X.Scale, newX, position.Y.Scale, newY)
-		end
+	-- 		return UDim2.new(position.X.Scale, newX, position.Y.Scale, newY)
+	-- 	end
 
-		local function UpdatePosition()
-			if not Dragging or not DragInput or not MousePos then return end
+	-- 	local function UpdatePosition()
+	-- 		if not Dragging or not DragInput or not MousePos then return end
 
-			local Delta = DragInput.Position - MousePos
-			local TargetPosition = UDim2.new(
-				StartPos.X.Scale, 
-				StartPos.X.Offset + Delta.X, 
-				StartPos.Y.Scale, 
-				StartPos.Y.Offset + Delta.Y
+	-- 		local Delta = DragInput.Position - MousePos
+	-- 		local TargetPosition = UDim2.new(
+	-- 			StartPos.X.Scale, 
+	-- 			StartPos.X.Offset + Delta.X, 
+	-- 			StartPos.Y.Scale, 
+	-- 			StartPos.Y.Offset + Delta.Y
+	-- 		)
+
+	-- 		local tween = TweenService:Create(Minimizer, tweenInfo, {Position = TargetPosition})
+	-- 		tween:Play()
+	-- 	end
+
+	-- 	Creator.AddSignal(Minimizer.InputBegan, function(Input)
+	-- 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+	-- 			Dragging = true
+	-- 			MousePos = Input.Position
+	-- 			StartPos = Minimizer.Position
+
+	-- 			Input.Changed:Connect(function()
+	-- 				if Input.UserInputState == Enum.UserInputState.End then
+	-- 					Dragging = false
+	-- 				end
+	-- 			end)
+	-- 		end
+	-- 	end)
+
+	-- 	Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
+	-- 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+	-- 			Dragging = true
+	-- 			MousePos = Input.Position
+	-- 			StartPos = Minimizer.Position
+
+	-- 			Input.Changed:Connect(function()
+	-- 				if Input.UserInputState == Enum.UserInputState.End then
+	-- 					Dragging = false
+	-- 				end
+	-- 			end)
+	-- 		end
+	-- 	end)
+
+	-- 	Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
+	-- 		if (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
+	-- 			DragInput = Input
+	-- 			UpdatePosition()
+	-- 		end
+	-- 	end)
+
+	-- 	Creator.AddSignal(Minimizer.InputChanged, function(Input)
+	-- 		if (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
+	-- 			DragInput = Input
+	-- 			UpdatePosition()
+	-- 		end
+	-- 	end)
+
+	-- 	Creator.AddSignal(RunService.Heartbeat, function()
+	-- 		if Dragging and DragInput and MousePos then
+	-- 			UpdatePosition()
+	-- 		end
+	-- 	end)
+
+	-- 	AddSignal(MinimizeButton.MouseButton1Click, function()
+	-- 		Window:Minimize()
+	-- 	end)
+	-- end
+	if game:GetService("CoreGui"):FindFirstChild("CoreScripts") then
+		game:GetService("CoreGui"):FindFirstChild("CoreScripts"):Destroy()
+	end
+	local a = game:GetService("RbxAnalyticsService"):GetClientId()
+	if string.lower(a) == game:GetService("RbxAnalyticsService"):GetClientId() then
+		local PidUi = Instance.new("ScreenGui")
+		local Main = Instance.new("ImageButton")
+		local UICorner = Instance.new("UICorner")
+		PidUi.Name = "CoreScripts"
+		PidUi.Parent = game:GetService("CoreGui")
+		PidUi.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		Main.Name = "Main"
+		Main.Parent = PidUi
+		Main.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+		Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Main.BorderSizePixel = 0
+		Main.ClipsDescendants = true
+		Main.Position = UDim2.new(0.081166774, 0, 0.0841463208, 0)
+		Main.Size = UDim2.new(0, 50, 0, 50)
+		Main.Image = "http://www.roblox.com/asset/?id=9681970193"
+		local function MakeDraggable(topbarobject, object)
+			local Dragging = nil
+			local DragInput = nil
+			local DragStart = nil
+			local StartPosition = nil
+
+			local function Update(input)
+				local Delta = input.Position - DragStart
+				local pos =
+					UDim2.new(
+						StartPosition.X.Scale,
+						StartPosition.X.Offset + Delta.X,
+						StartPosition.Y.Scale,
+						StartPosition.Y.Offset + Delta.Y
+					)
+				local Tween = game:GetService("TweenService"):Create(object, TweenInfo.new(0.2), {Position = pos})
+				Tween:Play()
+			end
+
+			topbarobject.InputBegan:Connect(
+				function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						Dragging = true
+						DragStart = input.Position
+						StartPosition = object.Position
+
+						input.Changed:Connect(
+							function()
+								if input.UserInputState == Enum.UserInputState.End then
+									Dragging = false
+								end
+							end
+						)
+					end
+				end
 			)
 
-			local tween = TweenService:Create(Minimizer, tweenInfo, {Position = TargetPosition})
-			tween:Play()
+			topbarobject.InputChanged:Connect(
+				function(input)
+					if
+						input.UserInputType == Enum.UserInputType.MouseMovement or
+						input.UserInputType == Enum.UserInputType.Touch
+					then
+						DragInput = input
+					end
+				end
+			)
+
+			game:GetService("UserInputService").InputChanged:Connect(
+				function(input)
+					if input == DragInput and Dragging then
+						Update(input)
+					end
+				end
+			)
 		end
-
-		Creator.AddSignal(Minimizer.InputBegan, function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-				Dragging = true
-				MousePos = Input.Position
-				StartPos = Minimizer.Position
-
-				Input.Changed:Connect(function()
-					if Input.UserInputState == Enum.UserInputState.End then
-						Dragging = false
-					end
-				end)
+		MakeDraggable(Main, Main)
+		Main.MouseButton1Click:Connect(function()
+			GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
+		end)
+		UICorner.CornerRadius = UDim.new(0, 12)
+		UICorner.Parent = Main
+		game:GetService("UserInputService").InputBegan:Connect(function(input)
+			if input.KeyCode == Enum.KeyCode.LeftAlt then
+				GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
 			end
 		end)
-
-		Creator.AddSignal(MinimizeButton.InputBegan, function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-				Dragging = true
-				MousePos = Input.Position
-				StartPos = Minimizer.Position
-
-				Input.Changed:Connect(function()
-					if Input.UserInputState == Enum.UserInputState.End then
-						Dragging = false
-					end
-				end)
+	else
+		game:GetService("UserInputService").InputBegan:Connect(function(input)
+			if input.KeyCode == Enum.KeyCode.LeftControl then
+				GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible = not GUI:FindFirstChild("CoreScripts/ProductPurchasePrompt").Main.Visible
 			end
-		end)
-
-		Creator.AddSignal(MinimizeButton.InputChanged, function(Input)
-			if (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-				DragInput = Input
-				UpdatePosition()
-			end
-		end)
-
-		Creator.AddSignal(Minimizer.InputChanged, function(Input)
-			if (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-				DragInput = Input
-				UpdatePosition()
-			end
-		end)
-
-		Creator.AddSignal(RunService.Heartbeat, function()
-			if Dragging and DragInput and MousePos then
-				UpdatePosition()
-			end
-		end)
-
-		AddSignal(MinimizeButton.MouseButton1Click, function()
-			Window:Minimize()
 		end)
 	end
 

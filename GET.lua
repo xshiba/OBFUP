@@ -3364,7 +3364,7 @@ ElementsTable.Button = (function()
 		Creator.AddSignal(ButtonFrame.Frame.MouseButton1Click, function()
 			Library:SafeCallback(Config.Callback)
 		end)
-		wait(0.2)
+		wait()
 		return ButtonFrame
 	end
 
@@ -3474,7 +3474,7 @@ ElementsTable.Toggle = (function()
 		Toggle:SetValue(Toggle.Value)
 
 		Library.Options[Idx] = Toggle
-		wait(0.2)
+		wait()
 		return Toggle
 	end
 
@@ -4153,7 +4153,7 @@ ElementsTable.Dropdown = (function()
 
 		Library.Options[Idx] = Dropdown
 
-		wait(0.2)
+		wait()
 		return Dropdown
 	
 	
@@ -4359,7 +4359,7 @@ ElementsTable.Slider = (function()
 
 		Library.Options[Idx] = Slider
 
-		wait(0.2)
+		wait()
 
 		return Slider
 	
@@ -4508,7 +4508,7 @@ ElementsTable.Keybind = (function()
 				Picking = true
 				KeybindDisplayLabel.Text = "..."
 
-				wait(0.2)
+				wait()
 
 				local Event
 				Event = UserInputService.InputBegan:Connect(function(Input)

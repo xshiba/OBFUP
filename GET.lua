@@ -3456,7 +3456,6 @@ ElementsTable.Toggle = (function()
 
 			Library:SafeCallbackToggles(Config.Title, Toggle.Callback, Toggle.Value)
 			Library:SafeCallbackToggles(Config.Title, Toggle.Changed, Toggle.Value)
-			wait(.2)
 		end
 
 		function Toggle:GetValue()
@@ -4118,7 +4117,6 @@ ElementsTable.Dropdown = (function()
 
 			Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
 			Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-			wait(.2)
 		end
 
 		function Dropdown:GetValue()
@@ -4360,7 +4358,6 @@ ElementsTable.Slider = (function()
 
 			Library:SafeCallback(Slider.Callback, self.Value)
 			Library:SafeCallback(Slider.Changed, self.Value)
-			wait(.2)
 		end
 
 		function Slider:GetValue()

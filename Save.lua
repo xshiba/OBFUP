@@ -119,6 +119,7 @@ local SaveManager = {} do
 		for _, option in next, decoded.objects do
 			if self.Parser[option.type] then
 				self.Parser[option.type].Load(option.idx, option) -- task.spawn() so the config loading wont get stuck.
+				wait(.1)
 			end
 		end
 

@@ -3906,18 +3906,18 @@ ElementsTable.Dropdown = (function()
 		end
 
 		function Dropdown:BuildDropdownList()
-			local Values = Dropdown.Values
-			local Buttons = {}
-
-			for _, Element in next, DropdownScrollFrame:GetChildren() do
-				if not Element:IsA("UIListLayout") then
-					Element:Destroy()
-				end
-			end
-
-			local Count = 0
-
 			task.spawn(function()
+				local Values = Dropdown.Values
+				local Buttons = {}
+
+				for _, Element in next, DropdownScrollFrame:GetChildren() do
+					if not Element:IsA("UIListLayout") then
+						Element:Destroy()
+					end
+				end
+
+				local Count = 0
+
 				for Idx, Value in next, Values do
 					local Table = {}
 
@@ -4052,20 +4052,20 @@ ElementsTable.Dropdown = (function()
 					Buttons[Button] = Table
 					wait(.2)
 				end
-			end)
 
-			ListSizeX = 0
-			for Button, Table in next, Buttons do
-				if Button.ButtonLabel then
-					if Button.ButtonLabel.TextBounds.X > ListSizeX then
-						ListSizeX = Button.ButtonLabel.TextBounds.X
+				ListSizeX = 0
+				for Button, Table in next, Buttons do
+					if Button.ButtonLabel then
+						if Button.ButtonLabel.TextBounds.X > ListSizeX then
+							ListSizeX = Button.ButtonLabel.TextBounds.X
+						end
 					end
 				end
-			end
-			ListSizeX = ListSizeX + 30
+				ListSizeX = ListSizeX + 30
 
-			RecalculateCanvasSize()
-			RecalculateListSize()
+				RecalculateCanvasSize()
+				RecalculateListSize()
+			end)
 		end
 
 		function Dropdown:SetValues(NewValues)

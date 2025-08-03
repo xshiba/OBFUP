@@ -3631,6 +3631,8 @@ ElementsTable.Dropdown = (function()
 				MinSize = Vector2.new(170, 0),
 			}),
 		})
+ 
+		-- SEARCHABLE BOX --
 
 		local Border = New("UIStroke", {
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
@@ -3701,8 +3703,8 @@ ElementsTable.Dropdown = (function()
         local MAX_DROPDOWN_ITEMS = 5
 
         local MoveList = {
-            { Instance = DropdownHolderCanvas, YOffset = 35},
-            { Instance = SearchBase, YOffset = 0 },
+            { Instance = DropdownHolderCanvas, YOffset = 35}, -- no custom offset
+            { Instance = SearchBase, YOffset = 0 }, -- custom Y offset
         }
 
         local function RecalculateListPosition()
@@ -3727,6 +3729,7 @@ ElementsTable.Dropdown = (function()
             end
         end
 
+
 		local ListSizeX = 0
 		local function RecalculateListSize()
 			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
@@ -3745,36 +3748,32 @@ ElementsTable.Dropdown = (function()
 
 		Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
 
-		local searchDebounce = {}
 		Creator.AddSignal(DropdownSearch:GetPropertyChangedSignal("Text"), function()
 			local Text = DropdownSearch.Text
-			
-			if searchDebounce[Dropdown] then
-				searchDebounce[Dropdown]:Disconnect()
-			end
-			
-			searchDebounce[Dropdown] = task.delay(0.1, function()
-				if #Text == 0 then
-					for _, Element in next, DropdownScrollFrame:GetChildren() do
-						if not Element:IsA("UIListLayout") then
-							Element.Visible = true
-						end
-					end
-				else
-					local lowerText = Text:lower()
-					for _, Element in next, DropdownScrollFrame:GetChildren() do
-						if not Element:IsA("UIListLayout") then
-							local Value = Element.ButtonLabel.Text
-							local Similar = Value:lower():find(lowerText, 1, true)
-							Element.Visible = Similar and true or false
-						end
+			if #Text == 0 then
+				for _, Element in next, DropdownScrollFrame:GetChildren() do
+					if not Element:IsA("UIListLayout") then
+						local Value = Element.ButtonLabel.Text
+						local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
+						Element.Visible = true
 					end
 				end
+			end
+			for _, Element in next, DropdownScrollFrame:GetChildren() do
+				if not Element:IsA("UIListLayout") then
+					local Value = Element.ButtonLabel.Text
+					local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
+					Element.Visible = Similar and true or false
+				end
+			end
+			-- TweenService:Create(
+			-- 	DropdownHolderCanvas,
+			-- 	TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+			-- 	{ Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10) }
+			-- ):Play()
 
-				RecalculateListPosition()
-				RecalculateListSize()
-				searchDebounce[Dropdown] = nil
-			end)
+			RecalculateListPosition()
+			RecalculateListSize()
 		end)
 
 		Creator.AddSignal(DropdownSearch.Focused, function()
@@ -3787,6 +3786,7 @@ ElementsTable.Dropdown = (function()
 				repeat wait() until tick() - Tick > 5 or DropdownSearch:IsFocused()
 				if not DropdownSearch:IsFocused() then
 					DropdownSearch.Text = ""
+					-- Dropdown:Display()
 				end
 			end
 		end)
@@ -3830,6 +3830,7 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Open()
 			Dropdown.Opened = true
 			SearchBase.Visible = true
+			-- DropdownDisplay.Interactable = Dropdown.Searchable and true or false
 			ScrollFrame.ScrollingEnabled = false
 			DropdownHolderCanvas.Visible = true
 			TweenService:Create(
@@ -3842,6 +3843,9 @@ ElementsTable.Dropdown = (function()
 				TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 				{ Rotation = -90 }
 			):Play()
+			-- if Dropdown.Searchable then
+			-- 	DropdownDisplay:CaptureFocus()
+			-- end
 		end
 
 		function Dropdown:Close()
@@ -3911,43 +3915,12 @@ ElementsTable.Dropdown = (function()
 				end
 			end
 
-			local MAX_VISIBLE_ITEMS = 50
-			local startIndex = 1
-			local endIndex = math.min(#Values, MAX_VISIBLE_ITEMS)
-			
-			ListSizeX = 0
-			local tempTextLabel = New("TextLabel", {
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-				TextSize = 13,
-				Visible = false,
-				Parent = DropdownScrollFrame.Parent
-			})
-			
-			for _, Value in ipairs(Values) do
-				tempTextLabel.Text = Value
-				local textWidth = tempTextLabel.TextBounds.X
-				if textWidth > ListSizeX then
-					ListSizeX = textWidth
-				end
-			end
-			tempTextLabel:Destroy()
-			ListSizeX = ListSizeX + 30
+			local Count = 0
 
-			local elementsToCreate = {}
-			
-			for i = startIndex, endIndex do
-				local Value = Values[i]
-				if not Value then break end
-				
-				table.insert(elementsToCreate, {
-					index = i,
-					value = Value
-				})
-			end
-
-			for _, elementData in ipairs(elementsToCreate) do
-				local Value = elementData.value
+			for Idx, Value in next, Values do
 				local Table = {}
+
+				Count = Count + 1
 
 				local ButtonSelector = New("Frame", {
 					Size = UDim2.fromOffset(4, 14),
@@ -4061,7 +4034,9 @@ ElementsTable.Dropdown = (function()
 
 						Table:UpdateButton()
 
-						if not (Dropdown.Searchable and #DropdownDisplay.Text > 0) then
+						if Dropdown.Searchable and #DropdownDisplay.Text > 0 then
+
+						else
 							Dropdown:Display()
 						end
 
@@ -4071,14 +4046,24 @@ ElementsTable.Dropdown = (function()
 				end)
 
 				Table:UpdateButton()
+				Dropdown:Display()
+
 				Buttons[Button] = Table
+				wait()
 			end
 
-			RunService.Heartbeat:Wait()
+			ListSizeX = 0
+			for Button, Table in next, Buttons do
+				if Button.ButtonLabel then
+					if Button.ButtonLabel.TextBounds.X > ListSizeX then
+						ListSizeX = Button.ButtonLabel.TextBounds.X
+					end
+				end
+			end
+			ListSizeX = ListSizeX + 30
+
 			RecalculateCanvasSize()
 			RecalculateListSize()
-			
-			Dropdown:Display()
 		end
 
 		function Dropdown:SetValues(NewValues)
@@ -4117,6 +4102,7 @@ ElementsTable.Dropdown = (function()
 
 			Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
 			Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+			wait(.2)
 		end
 
 		function Dropdown:GetValue()
@@ -4171,6 +4157,8 @@ ElementsTable.Dropdown = (function()
 
 		wait()
 		return Dropdown
+	
+	
 	end
 
 	return Element

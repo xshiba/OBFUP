@@ -4049,7 +4049,7 @@ ElementsTable.Dropdown = (function()
 				Dropdown:Display()
 
 				Buttons[Button] = Table
-				wait()
+				wait(.2)
 			end
 
 			ListSizeX = 0

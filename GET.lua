@@ -3903,6 +3903,24 @@ ElementsTable.Dropdown = (function()
 			Dropdown:BuildDropdownList()
 		end
 
+		function Dropdown:SetValues(NewValues)
+			if NewValues then
+				local UniqueValues = {}
+				local ValueSet = {}
+				
+				for _, Value in ipairs(NewValues) do
+					if not ValueSet[Value] then
+						ValueSet[Value] = true
+						table.insert(UniqueValues, Value)
+					end
+				end
+				
+				Dropdown.Values = UniqueValues
+			end
+
+			Dropdown:BuildDropdownList()
+		end
+
 		function Dropdown:BuildDropdownList()
 			task.spawn(function()
 				local Values = Dropdown.Values
@@ -3916,9 +3934,18 @@ ElementsTable.Dropdown = (function()
 
 				local Count = 0
 
-				for Idx, Value in next, Values do
-					local Table = {}
+				if not Values or #Values == 0 then
+					RecalculateCanvasSize()
+					RecalculateListSize()
+					return
+				end
 
+				for Idx, Value in next, Values do
+					if Value == nil then
+						continue
+					end
+					
+					local Table = {}
 					Count = Count + 1
 
 					local ButtonSelector = New("Frame", {
@@ -3937,7 +3964,7 @@ ElementsTable.Dropdown = (function()
 
 					local ButtonLabel = New("TextLabel", {
 						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-						Text = Value,
+						Text = tostring(Value),
 						TextColor3 = Color3.fromRGB(200, 200, 200),
 						TextSize = 13,
 						TextXAlignment = Enum.TextXAlignment.Left,
@@ -4045,11 +4072,12 @@ ElementsTable.Dropdown = (function()
 					end)
 
 					Table:UpdateButton()
-					Dropdown:Display()
 
 					Buttons[Button] = Table
-					wait(.2)
+					task.wait(.2)
 				end
+
+				Dropdown:Display()
 
 				ListSizeX = 0
 				for Button, Table in next, Buttons do
@@ -4064,14 +4092,6 @@ ElementsTable.Dropdown = (function()
 				RecalculateCanvasSize()
 				RecalculateListSize()
 			end)
-		end
-
-		function Dropdown:SetValues(NewValues)
-			if NewValues then
-				Dropdown.Values = NewValues
-			end
-
-			Dropdown:BuildDropdownList()
 		end
 
 		function Dropdown:OnChanged(Func)

@@ -4038,7 +4038,7 @@ ElementsTable.Dropdown = (function()
 					if index % batchSize == 0 then
 						task.wait() -- yield to allow rendering
 					end
-					task.wait(0.05)
+					task.wait(0.2)
 				end
 
 				-- Post-process after all buttons are created

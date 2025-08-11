@@ -3904,156 +3904,167 @@ ElementsTable.Dropdown = (function()
 		end
 
 		function Dropdown:BuildDropdownList()
-			local Values = Dropdown.Values
-			local Buttons = {}
+			task.spawn(function()
+				local Values = Dropdown.Values
+				local Buttons = {}
 
-			-- Clear existing buttons
-			for _, Element in ipairs(DropdownScrollFrame:GetChildren()) do
-				if not Element:IsA("UIListLayout") then
-					Element:Destroy()
-				end
-			end
-
-			local Count = 0
-			local batchSize = 20  -- how many items per frame before yielding
-			local index = 0
-
-			local function createButton(Value)
-				local Table = {}
-				Count += 1
-
-				local ButtonSelector = New("Frame", {
-					Size = UDim2.fromOffset(4, 14),
-					BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-					Position = UDim2.fromOffset(-1, 16),
-					AnchorPoint = Vector2.new(0, 0.5),
-					ThemeTag = { BackgroundColor3 = "Accent" },
-				}, {
-					New("UICorner", { CornerRadius = UDim.new(0, 2) }),
-				})
-
-				local ButtonLabel = New("TextLabel", {
-					FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-					Text = Value,
-					TextColor3 = Color3.fromRGB(200, 200, 200),
-					TextSize = 13,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					BackgroundTransparency = 1,
-					AutomaticSize = Enum.AutomaticSize.Y,
-					Size = UDim2.fromScale(1, 1),
-					Position = UDim2.fromOffset(10, 0),
-					Name = "ButtonLabel",
-					AutoLocalize = false,
-					ThemeTag = { TextColor3 = "Text" },
-				})
-
-				local Button = New("TextButton", {
-					Size = UDim2.new(1, -5, 0, 32),
-					BackgroundTransparency = 1,
-					ZIndex = 23,
-					Text = "",
-					Parent = DropdownScrollFrame,
-					ThemeTag = { BackgroundColor3 = "DropdownOption" },
-				}, {
-					ButtonSelector,
-					ButtonLabel,
-					New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-				})
-
-				local Selected
-				if Config.Multi then
-					Selected = Dropdown.Value[Value]
-				else
-					Selected = Dropdown.Value == Value
+				for _, Element in next, DropdownScrollFrame:GetChildren() do
+					if not Element:IsA("UIListLayout") then
+						Element:Destroy()
+					end
 				end
 
-				local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
-				local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
-				local SelectorSizeMotor = Flipper.SingleMotor.new(6)
+				local Count = 0
 
-				SelectorSizeMotor:onStep(function(size)
-					ButtonSelector.Size = UDim2.new(0, 4, 0, size)
-				end)
+				for Idx, Value in next, Values do
+					local Table = {}
 
-				Creator.AddSignal(Button.MouseEnter, function()
-					SetBackTransparency(Selected and 0.85 or 0.89)
-				end)
-				Creator.AddSignal(Button.MouseLeave, function()
-					SetBackTransparency(Selected and 0.89 or 1)
-				end)
-				Creator.AddSignal(Button.MouseButton1Down, function()
-					SetBackTransparency(0.92)
-				end)
-				Creator.AddSignal(Button.MouseButton1Up, function()
-					SetBackTransparency(Selected and 0.85 or 0.89)
-				end)
+					Count = Count + 1
 
-				function Table:UpdateButton()
+					local ButtonSelector = New("Frame", {
+						Size = UDim2.fromOffset(4, 14),
+						BackgroundColor3 = Color3.fromRGB(76, 194, 255),
+						Position = UDim2.fromOffset(-1, 16),
+						AnchorPoint = Vector2.new(0, 0.5),
+						ThemeTag = {
+							BackgroundColor3 = "Accent",
+						},
+					}, {
+						New("UICorner", {
+							CornerRadius = UDim.new(0, 2),
+						}),
+					})
+
+					local ButtonLabel = New("TextLabel", {
+						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+						Text = Value,
+						TextColor3 = Color3.fromRGB(200, 200, 200),
+						TextSize = 13,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						AutomaticSize = Enum.AutomaticSize.Y,
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+						Position = UDim2.fromOffset(10, 0),
+						Name = "ButtonLabel",
+						AutoLocalize = false,
+						ThemeTag = {
+							TextColor3 = "Text",
+						},
+					})
+
+					local Button = New("TextButton", {
+						Size = UDim2.new(1, -5, 0, 32),
+						BackgroundTransparency = 1,
+						ZIndex = 23,
+						Text = "",
+						Parent = DropdownScrollFrame,
+						ThemeTag = {
+							BackgroundColor3 = "DropdownOption",
+						},
+					}, {
+						ButtonSelector,
+						ButtonLabel,
+						New("UICorner", {
+							CornerRadius = UDim.new(0, 6),
+						}),
+					})
+
+					local Selected
+
 					if Config.Multi then
 						Selected = Dropdown.Value[Value]
-						if Selected then
-							SetBackTransparency(0.89)
-						end
 					else
 						Selected = Dropdown.Value == Value
-						SetBackTransparency(Selected and 0.89 or 1)
 					end
-					SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, { frequency = 6 }))
-					SetSelTransparency(Selected and 0 or 1)
+
+					local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
+					local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
+					local SelectorSizeMotor = Flipper.SingleMotor.new(6)
+
+					SelectorSizeMotor:onStep(function(value)
+						ButtonSelector.Size = UDim2.new(0, 4, 0, value)
+					end)
+
+					Creator.AddSignal(Button.MouseEnter, function()
+						SetBackTransparency(Selected and 0.85 or 0.89)
+					end)
+					Creator.AddSignal(Button.MouseLeave, function()
+						SetBackTransparency(Selected and 0.89 or 1)
+					end)
+					Creator.AddSignal(Button.MouseButton1Down, function()
+						SetBackTransparency(0.92)
+					end)
+					Creator.AddSignal(Button.MouseButton1Up, function()
+						SetBackTransparency(Selected and 0.85 or 0.89)
+					end)
+
+					function Table:UpdateButton()
+						if Config.Multi then
+							Selected = Dropdown.Value[Value]
+							if Selected then
+								SetBackTransparency(0.89)
+							end
+						else
+							Selected = Dropdown.Value == Value
+							SetBackTransparency(Selected and 0.89 or 1)
+						end
+
+						SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, { frequency = 6 }))
+						SetSelTransparency(Selected and 0 or 1)
+					end
+
+					AddSignal(Button.Activated, function()
+						local Try = not Selected
+
+						if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
+						else
+							if Config.Multi then
+								Selected = Try
+								Dropdown.Value[Value] = Selected and true or nil
+							else
+								Selected = Try
+								Dropdown.Value = Selected and Value or nil
+
+								for _, OtherButton in next, Buttons do
+									OtherButton:UpdateButton()
+								end
+							end
+
+							Table:UpdateButton()
+
+							if Dropdown.Searchable and #DropdownDisplay.Text > 0 then
+
+							else
+								Dropdown:Display()
+							end
+
+							Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+							Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+						end
+					end)
+
+					Table:UpdateButton()
+					Dropdown:Display()
+
+					Buttons[Button] = Table
+					wait(.2)
 				end
 
-				AddSignal(Button.Activated, function()
-					local Try = not Selected
-					if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
-						return
-					end
-					if Config.Multi then
-						Selected = Try
-						Dropdown.Value[Value] = Selected and true or nil
-					else
-						Selected = Try
-						Dropdown.Value = Selected and Value or nil
-						for _, OtherButton in next, Buttons do
-							OtherButton:UpdateButton()
+				ListSizeX = 0
+				for Button, Table in next, Buttons do
+					if Button.ButtonLabel then
+						if Button.ButtonLabel.TextBounds.X > ListSizeX then
+							ListSizeX = Button.ButtonLabel.TextBounds.X
 						end
 					end
-					Table:UpdateButton()
-					if not (Dropdown.Searchable and #DropdownDisplay.Text > 0) then
-						Dropdown:Display()
-					end
-					Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-					Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-				end)
-
-				Table:UpdateButton()
-				Dropdown:Display()
-				Buttons[Button] = Table
-			end
-
-			-- Chunked creation to avoid freezing
-			task.spawn(function()
-				for _, Value in next, Values do
-					createButton(Value)
-					index += 1
-					if index % batchSize == 0 then
-						task.wait() -- yield to allow rendering
-					end
-					task.wait(0.2)
 				end
+				ListSizeX = ListSizeX + 30
 
-				-- Post-process after all buttons are created
-				local ListSizeX = 0
-				for Button, _ in next, Buttons do
-					if Button:FindFirstChild("ButtonLabel") then
-						ListSizeX = math.max(ListSizeX, Button.ButtonLabel.TextBounds.X)
-					end
-				end
-				ListSizeX += 30
 				RecalculateCanvasSize()
 				RecalculateListSize()
 			end)
 		end
-
 
 		function Dropdown:SetValues(NewValues)
 			if NewValues then
@@ -6794,4 +6805,3 @@ else
 end
 
 return Library, SaveManager, InterfaceManager
-								

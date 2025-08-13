@@ -4091,7 +4091,7 @@ ElementsTable.Dropdown = (function()
 				Str = Dropdown.Value or ""
 			end
 
-			DropdownDisplay.PlaceholderText = (Str == "" and "-- Select an option --" or Str)
+			DropdownDisplay.PlaceholderText = (Str == "" and "..." or Str)
 		end
 
 		function Dropdown:GetActiveValues()

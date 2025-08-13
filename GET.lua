@@ -4281,6 +4281,64 @@ ElementsTable.Dropdown = (function()
 			return Button
 		end
 
+		-- ฟังก์ชันโหลดเฉพาะ items ที่จำเป็น (สำหรับ SetValue)
+		function Dropdown:LoadRequiredItems(targetValues)
+			task.spawn(function()
+				-- เคลียร์ items เก่า
+				for _, Element in next, DropdownScrollFrame:GetChildren() do
+					if not Element:IsA("UIListLayout") and Element.Name ~= "LoadingIndicator" then
+						Element:Destroy()
+					end
+				end
+
+				Dropdown.Buttons = {}
+				Dropdown.LoadedItems = 0
+				ListSizeX = 0
+
+				-- โหลดเฉพาะ items ที่มีใน targetValues และ items รอบๆ
+				local indicesToLoad = {}
+				local loadRadius = 10 -- โหลด 10 items รอบๆ ค่าที่ต้องการ
+				
+				for _, targetValue in ipairs(targetValues) do
+					local targetIndex = table.find(Dropdown.Values, targetValue)
+					if targetIndex then
+						-- เพิ่ม index หลักและ index รอบๆ
+						for i = math.max(1, targetIndex - loadRadius), math.min(#Dropdown.Values, targetIndex + loadRadius) do
+							indicesToLoad[i] = true
+						end
+					end
+				end
+
+				-- โหลด items ที่จำเป็น
+				local loadedCount = 0
+				for i = 1, #Dropdown.Values do
+					if indicesToLoad[i] then
+						LoadItem(i, Dropdown.Values[i])
+						loadedCount = loadedCount + 1
+						
+						-- อัพเดท text bounds สำหรับขนาด
+						if ListSizeX == 0 then
+							for Button, Table in next, Dropdown.Buttons do
+								if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
+									if Button.ButtonLabel.TextBounds.X > ListSizeX then
+										ListSizeX = Button.ButtonLabel.TextBounds.X
+									end
+								end
+							end
+							ListSizeX = ListSizeX + 40
+						end
+					end
+				end
+
+				Dropdown.LoadedItems = loadedCount
+
+				-- อัพเดท canvas size
+				RecalculateCanvasSize()
+				RecalculateListSize()
+				Dropdown:Display()
+			end)
+		end
+
 		-- ฟังก์ชันโหลด batch ถัดไป
 		function Dropdown:LoadNextBatch()
 			if Dropdown.IsLoadingBatch or Dropdown.LoadedItems >= #Dropdown.Values then
@@ -4371,25 +4429,37 @@ ElementsTable.Dropdown = (function()
 		end
 
 		function Dropdown:SetValue(Val)
+			local needsLoading = false
+			local targetValues = {}
+			
 			if Dropdown.Multi then
 				local nTable = {}
 
 				for Value, Bool in next, Val do
 					if table.find(Dropdown.Values, Value) then
 						nTable[Value] = true
+						table.insert(targetValues, Value)
 					end
 				end
 
 				Dropdown.Value = nTable
+				needsLoading = next(nTable) ~= nil
 			else
 				if not Val then
 					Dropdown.Value = nil
 				elseif table.find(Dropdown.Values, Val) then
 					Dropdown.Value = Val
+					table.insert(targetValues, Val)
+					needsLoading = true
 				end
 			end
 
-			Dropdown:BuildDropdownList()
+			-- ถ้ามีการ set ค่าใหม่ ให้โหลดเฉพาะ items ที่จำเป็น
+			if needsLoading and #targetValues > 0 then
+				Dropdown:LoadRequiredItems(targetValues)
+			else
+				Dropdown:BuildDropdownList()
+			end
 
 			Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
 			Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
@@ -4403,6 +4473,29 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Destroy()
 			DropdownFrame:Destroy()
 			Library.Options[Idx] = nil
+		end
+
+		-- ฟังก์ชันเช็คว่า value ถูกโหลดแล้วหรือยัง
+		function Dropdown:IsValueLoaded(value)
+			for Button, Table in next, Dropdown.Buttons do
+				if Button and Button.ButtonLabel and Button.ButtonLabel.Text == tostring(value) then
+					return true
+				end
+			end
+			return false
+		end
+
+		-- ฟังก์ชันโหลด value เฉพาะตัว (ถ้ายังไม่ถูกโหลด)
+		function Dropdown:EnsureValueLoaded(value)
+			if not Dropdown:IsValueLoaded(value) then
+				local index = table.find(Dropdown.Values, value)
+				if index then
+					LoadItem(index, value)
+					Dropdown.LoadedItems = Dropdown.LoadedItems + 1
+					RecalculateCanvasSize()
+					RecalculateListSize()
+				end
+			end
 		end
 
 		-- ฟังก์ชันปรับแต่ง batch size
@@ -4468,7 +4561,28 @@ ElementsTable.Dropdown = (function()
 				end
 			end
 
-			-- ไม่เรียก BuildDropdownList ที่นี่ เพราะยังไม่ต้องโหลด items
+			-- โหลดเฉพาะ items ที่จำเป็นสำหรับ default values
+			local targetValues = {}
+			if Config.Multi then
+				for value, _ in pairs(Dropdown.Value) do
+					table.insert(targetValues, value)
+				end
+			else
+				if Dropdown.Value then
+					table.insert(targetValues, Dropdown.Value)
+				end
+			end
+			
+			if #targetValues > 0 then
+				Dropdown:LoadRequiredItems(targetValues)
+			else
+				Dropdown:BuildDropdownList()
+			end
+			
+			Dropdown:Display()
+		else
+			-- ถ้าไม่มี default values ก็แค่ build list ธรรมดา (ไม่โหลด items)
+			Dropdown:BuildDropdownList()
 			Dropdown:Display()
 		end
 

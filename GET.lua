@@ -3478,24 +3478,7 @@ ElementsTable.Toggle = (function()
 
 	return Element
 end)()
-Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
-
-		-- เพิ่ม hover effect สำหรับ search icon
-		Creator.AddSignal(DropdownSearch.Focused, function()
-			TweenService:Create(
-				searchIcon,
-				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-				{ ImageColor3 = Color3.fromRGB(100, 150, 255), Size = UDim2.fromOffset(18, 18) }
-			):Play()
-		end)
-
-		Creator.AddSignal(DropdownSearch.FocusLost, function()
-			TweenService:Create(
-				searchIcon,
-				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-				{ ImageColor3 = Color3.fromRGB(140, 140, 150), Size = UDim2.fromOffset(16, 16) }
-			):Play()
-		end)ElementsTable.Dropdown = (function()
+ElementsTable.Dropdown = (function()
 	local Element = {}
 	Element.__index = Element
 	Element.__type = "Dropdown"
@@ -3539,7 +3522,7 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextYAlignment = Enum.TextYAlignment.Center,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Size = UDim2.new(1, -40, 0.5, 0),
+			Size = UDim2.new(1, Dropdown.Multi and -70 or -40, 0.5, 0), -- เพิ่มพื้นที่สำหรับปุ่มกากบาท
 			Position = UDim2.new(0, 8, 0.5, 0),
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -3552,6 +3535,44 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 				PlaceholderColor3 = "Text"
 			},
 		})
+
+		-- Clear Button สำหรับ Multi Dropdown (วางข้างๆ Search Box)
+		local ClearButton = nil
+		if Dropdown.Multi then
+			ClearButton = New("TextButton", {
+				Size = UDim2.fromOffset(30, 30),
+				BackgroundColor3 = Color3.fromRGB(220, 60, 60),
+				BackgroundTransparency = 0.15,
+				Text = "",
+				AutoLocalize = false,
+				Visible = false, -- ซ่อนไว้ก่อน จะแสดงเมื่อมีการเลือก
+				Parent = Library.GUI,
+				ThemeTag = {
+					BackgroundColor3 = "DangerColor",
+				},
+			}, {
+				New("UICorner", {
+					CornerRadius = UDim.new(0, 15), -- ทำให้เป็นวงกลม
+				}),
+				New("UIStroke", {
+					Transparency = 0.4,
+					Thickness = 1.5,
+					Color = Color3.fromRGB(255, 120, 120),
+					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				}),
+				-- สร้างกากบาทจาก ImageLabel แทน Text
+				New("ImageLabel", {
+					Size = UDim2.fromOffset(16, 16),
+					Position = UDim2.fromScale(0.5, 0.5),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					BackgroundTransparency = 1,
+					Image = "rbxassetid://10747384394", -- ใช้ไอคอนกากบาทที่ถูกต้อง
+					ThemeTag = {
+						ImageColor3 = "Text",
+					},
+				}),
+			})
+		end
 
 		local DropdownIco = New("ImageLabel", {
 			Image = "rbxassetid://10709790948",
@@ -3577,10 +3598,10 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			},
 		}, {
 			New("UICorner", {
-				CornerRadius = UDim.new(0, 5),
+				CornerRadius = UDim.new(0, 8), -- เพิ่มขนาด corner
 			}),
 			New("UIStroke", {
-				Transparency = 0.5,
+				Transparency = 0.3, -- ลดความโปร่งใส
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 				ThemeTag = {
 					Color = "InElementBorder",
@@ -3590,20 +3611,76 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			DropdownDisplay,
 		})
 
+		-- เพิ่ม hover effect สำหรับ dropdown
+		local DropdownHoverMotor, SetDropdownHover = Creator.SpringMotor(0.9, DropdownInner, "BackgroundTransparency")
+		Creator.AddSignal(DropdownInner.MouseEnter, function()
+			SetDropdownHover(0.8)
+		end)
+		Creator.AddSignal(DropdownInner.MouseLeave, function()
+			SetDropdownHover(0.9)
+		end)
+
+		-- เพิ่ม hover effect สำหรับ clear button
+		if ClearButton then
+			local ClearHoverMotor, SetClearHover = Creator.SpringMotor(0.15, ClearButton, "BackgroundTransparency")
+			Creator.AddSignal(ClearButton.MouseEnter, function()
+				SetClearHover(0.05)
+				-- เพิ่ม scale effect
+				TweenService:Create(ClearButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(32, 32)
+				}):Play()
+			end)
+			Creator.AddSignal(ClearButton.MouseLeave, function()
+				SetClearHover(0.15)
+				-- คืนขนาดเดิม
+				TweenService:Create(ClearButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(30, 30)
+				}):Play()
+			end)
+			Creator.AddSignal(ClearButton.MouseButton1Down, function()
+				SetClearHover(0.0)
+				-- เพิ่ม press effect
+				TweenService:Create(ClearButton, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(28, 28)
+				}):Play()
+			end)
+			Creator.AddSignal(ClearButton.MouseButton1Up, function()
+				SetClearHover(0.05)
+				TweenService:Create(ClearButton, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(32, 32)
+				}):Play()
+			end)
+
+			-- ฟังก์ชันล้างค่าทั้งหมด
+			Creator.AddSignal(ClearButton.MouseButton1Click, function()
+				if Dropdown.Multi then
+					Dropdown.Value = {}
+					for _, Button in next, Dropdown.Buttons do
+						Button:UpdateButton()
+					end
+					Dropdown:Display()
+					-- ปิด dropdown หลังล้างค่า
+					Dropdown:Close()
+					Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+					Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+				end
+			end)
+		end
+
 		local DropdownListLayout = New("UIListLayout", {
-			Padding = UDim.new(0, 3),
+			Padding = UDim.new(0, 4), -- เพิ่ม padding
 		})
 
 		local DropdownScrollFrame = New("ScrollingFrame", {
-			Size = UDim2.new(1, -5, 1, -10),
-			Position = UDim2.fromOffset(5, 5),
+			Size = UDim2.new(1, -8, 1, -12), -- ปรับขนาด
+			Position = UDim2.fromOffset(6, 6), -- ปรับตำแหน่ง
 			BackgroundTransparency = 1,
 			BottomImage = "rbxassetid://6889812791",
 			MidImage = "rbxassetid://6889812721",
 			TopImage = "rbxassetid://6276641225",
-			ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255),
-			ScrollBarImageTransparency = 0.75,
-			ScrollBarThickness = 5,
+			ScrollBarImageColor3 = Color3.fromRGB(120, 120, 120),
+			ScrollBarImageTransparency = 0.6,
+			ScrollBarThickness = 6,
 			BorderSizePixel = 0,
 			CanvasSize = UDim2.fromScale(0, 0),
 			ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -3619,11 +3696,11 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 		}, {
 			DropdownScrollFrame,
 			New("UICorner", {
-				CornerRadius = UDim.new(0, 8),
+				CornerRadius = UDim.new(0, 10), -- เพิ่มขนาด corner
 			}),
 			New("UIStroke", {
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-				Thickness = 1.5,
+				Transparency = 0.3, -- ลดความโปร่งใส
 				ThemeTag = {
 					Color = "DropdownBorder",
 				},
@@ -3633,10 +3710,10 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 				Image = "http://www.roblox.com/asset/?id=5554236805",
 				ScaleType = Enum.ScaleType.Slice,
 				SliceCenter = Rect.new(23, 23, 277, 277),
-				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(40, 40),
-				Position = UDim2.fromOffset(-20, -20),
+				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(30, 30),
+				Position = UDim2.fromOffset(-15, -15),
 				ImageColor3 = Color3.fromRGB(0, 0, 0),
-				ImageTransparency = 0.05,
+				ImageTransparency = 0.05, -- ลดความโปร่งใส
 			}),
 		})
 
@@ -3652,19 +3729,19 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			}),
 		})
 
-		-- Loading indicator frame
+		-- Loading indicator frame with better styling
 		local LoadingIndicator = New("Frame", {
-			Size = UDim2.new(1, -10, 0, 35),
-			BackgroundColor3 = Color3.fromRGB(55, 55, 65),
-			BackgroundTransparency = 0.3,
+			Size = UDim2.new(1, -5, 0, 35),
+			BackgroundColor3 = Color3.fromRGB(50, 50, 60),
+			BackgroundTransparency = 0.7,
 			Parent = DropdownScrollFrame,
 			Name = "LoadingIndicator",
 			Visible = false,
 		}, {
 			New("TextLabel", {
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-				Text = "⟳ Loading more items...",
-				TextColor3 = Color3.fromRGB(180, 180, 190),
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+				Text = "📦 Loading more items...",
+				TextColor3 = Color3.fromRGB(150, 150, 150),
 				TextSize = 12,
 				TextXAlignment = Enum.TextXAlignment.Center,
 				BackgroundTransparency = 1,
@@ -3674,19 +3751,14 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			New("UICorner", {
 				CornerRadius = UDim.new(0, 8),
 			}),
-			New("UIStroke", {
-				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-				Thickness = 1,
-				Color = Color3.fromRGB(80, 80, 90),
-				Transparency = 0.5,
-			}),
 		})
  
-		-- SEARCHABLE BOX --
+		-- SEARCHABLE BOX with enhanced styling --
 
 		local Border = New("UIStroke", {
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Color = Color3.fromRGB(70, 70, 80),
+			Color = Color3.fromRGB(100, 100, 120),
+			Transparency = 0.3,
 			Thickness = 1.5,
 			ThemeTag = {
 				Color = "ElementBorder",
@@ -3695,45 +3767,19 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 
 		local searchIcon = New("ImageLabel", {
 			Image = "rbxassetid://10734943674",
-			Size = UDim2.fromOffset(16, 16),
+			Size = UDim2.fromOffset(18, 18),
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.new(0, 8, 0.5, 0),
 			BackgroundTransparency = 1,
 			Rotation = 0,
-			ImageColor3 = Color3.fromRGB(140, 140, 150),
 			ThemeTag = {
 				ImageColor3 = "SubText",
 			},
 		})
 
-		-- Clear button สำหรับ Multi dropdown
-		local clearButton = New("TextButton", {
-			Size = UDim2.fromOffset(20, 20),
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.new(1, -8, 0.5, 0),
-			BackgroundColor3 = Color3.fromRGB(220, 60, 60),
-			BackgroundTransparency = 0.2,
-			Text = "✕",
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			TextSize = 12,
-			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
-			Visible = Config.Multi or false,
-			AutoLocalize = false,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0.5, 0),
-			}),
-			New("UIStroke", {
-				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-				Thickness = 1,
-				Color = Color3.fromRGB(180, 40, 40),
-				Transparency = 0.3,
-			}),
-		})
-
 		local SearchBase = New("Frame", {
 			Visible = false,
-			Size = UDim2.new(0, 170, 0, 35),
+			Size = UDim2.new(0, 170, 0, 35), -- เพิ่มความสูง
 			Parent = Library.GUI,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			ThemeTag = {
@@ -3741,35 +3787,38 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			},
 		}, {
 			New("UICorner", {
-				CornerRadius = UDim.new(0, 8),
+				CornerRadius = UDim.new(0, 8), -- เพิ่มขนาด corner
 			}),
 			searchIcon,
-			clearButton,
 			Border,
-			New("ImageLabel", {
-				BackgroundTransparency = 1,
-				Image = "http://www.roblox.com/asset/?id=5554236805",
-				ScaleType = Enum.ScaleType.Slice,
-				SliceCenter = Rect.new(23, 23, 277, 277),
-				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(20, 20),
-				Position = UDim2.fromOffset(-10, -10),
-				ImageColor3 = Color3.fromRGB(0, 0, 0),
-				ImageTransparency = 0.1,
-			}),
+		})
+
+		-- เพิ่ม gradient effect สำหรับ search box
+		local SearchGradient = New("UIGradient", {
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
+				ColorSequenceKeypoint.new(1.0, Color3.fromRGB(240, 240, 250))
+			},
+			Rotation = 45,
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0.0, 0.95),
+				NumberSequenceKeypoint.new(1.0, 0.98)
+			},
+			Parent = SearchBase,
 		})
 
         local DropdownSearch = New("TextBox", {
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 			Text = "",
-			PlaceholderText = "🔍 Search items...",
-			PlaceholderColor3 = Color3.fromRGB(160, 160, 170),
+			PlaceholderText = "🔍 Search...",
+			PlaceholderColor3 = Color3.fromRGB(180, 180, 190),
             Parent = SearchBase,
 			TextColor3 = Color3.fromRGB(240, 240, 240),
-			TextSize = 13,
+			TextSize = 14,
 			TextYAlignment = Enum.TextYAlignment.Center,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Size = UDim2.new(1, Config.Multi and -50 or -25, 1, 0),
-			Position = UDim2.new(0, 25, 0.5, 0),
+			Size = UDim2.new(1, -30, 1, -4),
+			Position = UDim2.new(0, 30, 0.5, 0),
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
@@ -3783,6 +3832,15 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			},
 		})
 
+		-- เพิ่ม focus effect สำหรับ search box
+		local SearchFocusMotor, SetSearchFocus = Creator.SpringMotor(0.3, Border, "Transparency")
+		Creator.AddSignal(DropdownSearch.Focused, function()
+			SetSearchFocus(0.1)
+		end)
+		Creator.AddSignal(DropdownSearch.FocusLost, function()
+			SetSearchFocus(0.3)
+		end)
+
 		table.insert(Library.OpenFrames, DropdownHolderCanvas)
 
         local XADD = 195
@@ -3791,8 +3849,9 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
         local MAX_DROPDOWN_ITEMS = 5
 
         local MoveList = {
-            { Instance = DropdownHolderCanvas, YOffset = 40}, -- เพิ่ม offset สำหรับ search box ที่ใหญ่ขึ้น
+            { Instance = DropdownHolderCanvas, YOffset = 35}, -- no custom offset
             { Instance = SearchBase, YOffset = 0 }, -- custom Y offset
+            { Instance = ClearButton, YOffset = 0, XOffset = 175 }, -- Clear button ข้างๆ search
         }
 
         local function RecalculateListPosition()
@@ -3810,19 +3869,21 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 
             for _, entry in ipairs(MoveList) do
                 local inst = entry.Instance
-                local xOffset = entry.XOffset or 0
-                local yOffset = entry.YOffset or 0
+                if inst then -- เช็คว่า instance มีอยู่จริง
+                    local xOffset = entry.XOffset or 0
+                    local yOffset = entry.YOffset or 0
 
-                inst.Position = UDim2.fromOffset(baseX + xOffset, baseY + yOffset)
+                    inst.Position = UDim2.fromOffset(baseX + xOffset, baseY + yOffset)
+                end
             end
         end
 
 		local ListSizeX = 0
 		local function RecalculateListSize()
 			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, (39 * MAX_DROPDOWN_ITEMS) - 13)
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, (42 * MAX_DROPDOWN_ITEMS) - 10) -- ปรับขนาดตาม item ที่ใหญ่ขึ้น
 			else
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10)
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 15)
 			end
 		end
 
@@ -3830,15 +3891,15 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			-- คำนวณ canvas size จากจำนวน items ที่โหลดแล้ว + พื้นที่สำหรับ loading indicator
 			local loadedItems = Dropdown.LoadedItems
 			local totalItems = #Dropdown.Values
-			local itemHeight = 32
-			local itemPadding = 3
+			local itemHeight = 36 -- เพิ่มขนาด item
+			local itemPadding = 4
 			
 			-- ขนาดของ items ที่โหลดแล้ว
 			local loadedHeight = loadedItems * itemHeight + math.max(0, loadedItems - 1) * itemPadding
 			
 			-- เพิ่มพื้นที่สำหรับ loading indicator ถ้ายังโหลดไม่หมด
 			if loadedItems < totalItems then
-				loadedHeight = loadedHeight + 40 -- พื้นที่สำหรับ loading indicator + trigger zone
+				loadedHeight = loadedHeight + 45 -- พื้นที่สำหรับ loading indicator + trigger zone
 			end
 			
 			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, loadedHeight)
@@ -3847,39 +3908,7 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 		RecalculateListPosition()
 		RecalculateListSize()
 
-		-- เพิ่ม event สำหรับปุ่ม clear
-		Creator.AddSignal(clearButton.MouseButton1Click, function()
-			if Config.Multi and Dropdown.Value then
-				-- เคลียร์ค่าทั้งหมด
-				Dropdown.Value = {}
-				
-				-- อัพเดทปุ่มทั้งหมด
-				for _, ButtonTable in next, Dropdown.Buttons do
-					ButtonTable:UpdateButton()
-				end
-				
-				Dropdown:Display()
-				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-			end
-		end)
-
-		-- เพิ่ม hover effect สำหรับปุ่ม clear
-		Creator.AddSignal(clearButton.MouseEnter, function()
-			TweenService:Create(
-				clearButton,
-				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-				{ BackgroundTransparency = 0, Size = UDim2.fromOffset(22, 22) }
-			):Play()
-		end)
-
-		Creator.AddSignal(clearButton.MouseLeave, function()
-			TweenService:Create(
-				clearButton,
-				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-				{ BackgroundTransparency = 0.2, Size = UDim2.fromOffset(20, 20) }
-			):Play()
-		end)
+		Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
 
 		-- Scroll detection for lazy loading
 		Creator.AddSignal(DropdownScrollFrame:GetPropertyChangedSignal("CanvasPosition"), function()
@@ -3949,13 +3978,24 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
                     and (DropdownHolderFrame.AbsolutePosition.Y - 21) <= pos.Y
                     and pos.Y <= DropdownHolderFrame.AbsolutePosition.Y + DropdownHolderFrame.AbsoluteSize.Y
 
-                local inSearchBox = SearchBase.AbsolutePosition.X <= pos.X
-                    and pos.X <= SearchBase.AbsolutePosition.X + SearchBase.AbsoluteSize.X
-                    and SearchBase.AbsolutePosition.Y <= pos.Y
-                    and pos.Y <= SearchBase.AbsolutePosition.Y + SearchBase.AbsoluteSize.Y
+                local inSearchBox = false
+                if SearchBase.Visible then
+                    inSearchBox = SearchBase.AbsolutePosition.X <= pos.X
+                        and pos.X <= SearchBase.AbsolutePosition.X + SearchBase.AbsoluteSize.X
+                        and SearchBase.AbsolutePosition.Y <= pos.Y
+                        and pos.Y <= SearchBase.AbsolutePosition.Y + SearchBase.AbsoluteSize.Y
+                end
 
-                if not inDropdownInner and not inDropdownHolder and not inSearchBox then
-                    Dropdown:Close()
+                local inClearButton = false
+                if ClearButton and ClearButton.Visible then
+                    inClearButton = ClearButton.AbsolutePosition.X <= pos.X
+                        and pos.X <= ClearButton.AbsolutePosition.X + ClearButton.AbsoluteSize.X
+                        and ClearButton.AbsolutePosition.Y <= pos.Y
+                        and pos.Y <= ClearButton.AbsolutePosition.Y + ClearButton.AbsoluteSize.Y
+                end
+
+                if not inDropdownInner and not inDropdownHolder and not inSearchBox and not inClearButton then
+                    Dropdown:Close() -- เรียกใช้ Close() ที่จะซ่อนปุ่มกากบาท
                 end
             end
         end)
@@ -3971,17 +4011,33 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 		local ScrollFrame = self.ScrollFrame
 		function Dropdown:Open()
 			Dropdown.Opened = true
-			SearchBase.Visible = true
+			if Dropdown.Searchable then
+				SearchBase.Visible = true
+			end
+			if ClearButton and Dropdown.Multi then
+				local hasSelection = false
+				for _, _ in pairs(Dropdown.Value) do
+					hasSelection = true
+					break
+				end
+				ClearButton.Visible = hasSelection
+			end
 			ScrollFrame.ScrollingEnabled = false
 			DropdownHolderCanvas.Visible = true
+			
+			-- โหลด batch แรกเมื่อเปิด dropdown ถ้ายังไม่มี items
+			if Dropdown.LoadedItems == 0 and #Dropdown.Values > 0 then
+				Dropdown:LoadNextBatch()
+			end
+			
 			TweenService:Create(
 				DropdownHolderFrame,
-				TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 				{ Size = UDim2.fromScale(1, 1) }
 			):Play()
 			TweenService:Create(
 				DropdownIco,
-				TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 				{ Rotation = -90 }
 			):Play()
 		end
@@ -3989,13 +4045,16 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 		function Dropdown:Close()
 			Dropdown.Opened = false
 			SearchBase.Visible = false
+			if ClearButton then
+				ClearButton.Visible = false -- บังคับซ่อนเมื่อปิด dropdown
+			end
 			ScrollFrame.ScrollingEnabled = true
 			DropdownDisplay.Interactable = false
 			DropdownHolderFrame.Size = UDim2.fromScale(1, 0.6)
 			DropdownHolderCanvas.Visible = false
 			TweenService:Create(
 				DropdownIco,
-				TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 				{ Rotation = 90 }
 			):Play()
 			DropdownSearch:ReleaseFocus(false)
@@ -4007,17 +4066,32 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			local Str = ""
 
 			if Config.Multi then
+				local count = 0
 				for Idx, Value in next,Values do
 					if Dropdown.Value[Value] then
-						Str = Str .. Value .. ", "
+						count = count + 1
+						if count <= 3 then
+							Str = Str .. Value .. ", "
+						elseif count == 4 then
+							Str = Str .. "and " .. (count - 3) .. " more..."
+							break
+						end
 					end
 				end
-				Str = Str:sub(1, #Str - 2)
+				if count <= 3 then
+					Str = Str:sub(1, #Str - 2)
+				end
+				
+				-- แสดง/ซ่อนปุ่มกากบาท
+				if ClearButton then
+					-- แสดงเฉพาะเมื่อ dropdown เปิดอยู่ และมีรายการที่เลือก
+					ClearButton.Visible = Dropdown.Opened and count > 0
+				end
 			else
 				Str = Dropdown.Value or ""
 			end
 
-			DropdownDisplay.PlaceholderText = (Str == "" and "--" or Str)
+			DropdownDisplay.PlaceholderText = (Str == "" and "-- Select an option --" or Str)
 		end
 
 		function Dropdown:GetActiveValues()
@@ -4043,14 +4117,14 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			Dropdown:BuildDropdownList()
 		end
 
-		-- ฟังก์ชันสำหรับโหลด item แต่ละตัว
+		-- ฟังก์ชันสำหรับโหลด item แต่ละตัว with enhanced styling
 		local function LoadItem(Idx, Value)
 			local Table = {}
 
 			local ButtonSelector = New("Frame", {
-				Size = UDim2.fromOffset(3, 12),
+				Size = UDim2.fromOffset(4, 16),
 				BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-				Position = UDim2.fromOffset(-2, 18),
+				Position = UDim2.fromOffset(-1, 18),
 				AnchorPoint = Vector2.new(0, 0.5),
 				ThemeTag = {
 					BackgroundColor3 = "Accent",
@@ -4062,9 +4136,9 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			})
 
 			local ButtonLabel = New("TextLabel", {
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 				Text = tostring(Value), 
-				TextColor3 = Color3.fromRGB(220, 220, 230),
+				TextColor3 = Color3.fromRGB(200, 200, 200),
 				TextSize = 13,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -4079,28 +4153,21 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 				},
 			})
 
-			-- เพิ่ม checkmark สำหรับ selected items
-			local CheckMark = New("TextLabel", {
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
-				Text = "✓",
-				TextColor3 = Color3.fromRGB(76, 194, 255),
-				TextSize = 14,
-				TextXAlignment = Enum.TextXAlignment.Center,
-				TextYAlignment = Enum.TextYAlignment.Center,
+			-- เพิ่ม icon สำหรับ selected items
+			local CheckIcon = New("ImageLabel", {
+				Image = "rbxassetid://10709791437", -- checkmark icon
+				Size = UDim2.fromOffset(14, 14),
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.new(1, -8, 0.5, 0),
 				BackgroundTransparency = 1,
-				Size = UDim2.fromOffset(16, 16),
-				Position = UDim2.new(1, -20, 0.5, 0),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Name = "CheckMark",
-				AutoLocalize = false,
-				Visible = false,
+				ImageTransparency = 1,
 				ThemeTag = {
-					TextColor3 = "Accent",
+					ImageColor3 = "Accent",
 				},
 			})
 
 			local Button = New("TextButton", {
-				Size = UDim2.new(1, -8, 0, 36),
+				Size = UDim2.new(1, -8, 0, 36), -- เพิ่มความสูง
 				BackgroundTransparency = 1,
 				ZIndex = 23,
 				Text = "",
@@ -4112,15 +4179,14 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			}, {
 				ButtonSelector,
 				ButtonLabel,
-				CheckMark,
+				CheckIcon,
 				New("UICorner", {
-					CornerRadius = UDim.new(0, 8),
+					CornerRadius = UDim.new(0, 8), -- เพิ่มขนาด corner
 				}),
 				New("UIStroke", {
-					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-					Thickness = 1,
-					Color = Color3.fromRGB(60, 60, 70),
 					Transparency = 0.8,
+					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+					Color = Color3.fromRGB(100, 100, 120),
 				}),
 			})
 
@@ -4136,63 +4202,49 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 
 			local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
 			local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
-			local SelectorSizeMotor = Flipper.SingleMotor.new(6)
-			local CheckMotor, SetCheckTransparency = Creator.SpringMotor(1, CheckMark, "TextTransparency")
+			local CheckMotor, SetCheckTransparency = Creator.SpringMotor(1, CheckIcon, "ImageTransparency")
+			local StrokeMotor, SetStrokeTransparency = Creator.SpringMotor(0.8, Button.UIStroke, "Transparency")
+			local SelectorSizeMotor = Flipper.SingleMotor.new(8)
 
 			SelectorSizeMotor:onStep(function(value)
 				if ButtonSelector and ButtonSelector.Parent then
-					ButtonSelector.Size = UDim2.new(0, 3, 0, value)
+					ButtonSelector.Size = UDim2.new(0, 4, 0, value)
 				end
 			end)
 
 			Creator.AddSignal(Button.MouseEnter, function()
-				SetBackTransparency(Selected and 0.75 or 0.85)
-				TweenService:Create(
-					Button,
-					TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-					{ Size = UDim2.new(1, -6, 0, 36) }
-				):Play()
+				SetBackTransparency(Selected and 0.82 or 0.88)
+				SetStrokeTransparency(Selected and 0.4 or 0.6)
 			end)
 			Creator.AddSignal(Button.MouseLeave, function()
-				SetBackTransparency(Selected and 0.85 or 1)
-				TweenService:Create(
-					Button,
-					TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-					{ Size = UDim2.new(1, -8, 0, 36) }
-				):Play()
+				SetBackTransparency(Selected and 0.88 or 1)
+				SetStrokeTransparency(Selected and 0.6 or 0.8)
 			end)
 			Creator.AddSignal(Button.MouseButton1Down, function()
-				SetBackTransparency(0.7)
-				TweenService:Create(
-					Button,
-					TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-					{ Size = UDim2.new(1, -10, 0, 34) }
-				):Play()
+				SetBackTransparency(0.75)
+				SetStrokeTransparency(0.2)
 			end)
 			Creator.AddSignal(Button.MouseButton1Up, function()
-				SetBackTransparency(Selected and 0.75 or 0.85)
-				TweenService:Create(
-					Button,
-					TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-					{ Size = UDim2.new(1, -6, 0, 36) }
-				):Play()
+				SetBackTransparency(Selected and 0.82 or 0.88)
+				SetStrokeTransparency(Selected and 0.4 or 0.6)
 			end)
 
 			function Table:UpdateButton()
 				if Config.Multi then
 					Selected = Dropdown.Value[Value]
 					if Selected then
-						SetBackTransparency(0.85)
+						SetBackTransparency(0.88)
+						SetStrokeTransparency(0.6)
 					end
 				else
 					Selected = Dropdown.Value == Value
-					SetBackTransparency(Selected and 0.85 or 1)
+					SetBackTransparency(Selected and 0.88 or 1)
+					SetStrokeTransparency(Selected and 0.6 or 0.8)
 				end
 
-				SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 18 or 6, { frequency = 8 }))
+				SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 16 or 8, { frequency = 7 }))
 				SetSelTransparency(Selected and 0 or 1)
 				SetCheckTransparency(Selected and 0 or 1)
-				CheckMark.Visible = Selected
 			end
 
 			AddSignal(Button.Activated, function()
@@ -4256,7 +4308,7 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 									end
 								end
 							end
-							ListSizeX = ListSizeX + 30
+							ListSizeX = ListSizeX + 40 -- เพิ่มขนาดสำหรับ padding
 						end
 						
 						-- หยุดเล็กน้อยเพื่อไม่ให้แลค (ถ้าจำเป็น)
@@ -4300,8 +4352,8 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 				-- รีเซ็ต canvas size ให้เล็กก่อน
 				DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, 0)
 				
-				-- โหลด batch แรก
-				Dropdown:LoadNextBatch()
+				-- ไม่โหลดทันที รอให้เปิด dropdown ก่อน
+				-- Dropdown:LoadNextBatch() -- ลบบรรทัดนี้
 			end)
 		end
 
@@ -4366,8 +4418,23 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 			end
 		end
 
+		-- ฟังก์ชันล้างค่าทั้งหมด (สำหรับ Multi dropdown)
+		function Dropdown:ClearAll()
+			if Dropdown.Multi then
+				Dropdown.Value = {}
+				for _, Button in next, Dropdown.Buttons do
+					Button:UpdateButton()
+				end
+				Dropdown:Display()
+				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+			end
+		end
+
 		Dropdown:BuildDropdownList()
 		Dropdown:Display()
+
+		-- ไม่เรียก BuildDropdownList ซ้ำ เพราะมันจะไม่โหลด items แล้ว
 
 		local Defaults = {}
 
@@ -4401,7 +4468,7 @@ Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), Re
 				end
 			end
 
-			Dropdown:BuildDropdownList()
+			-- ไม่เรียก BuildDropdownList ที่นี่ เพราะยังไม่ต้องโหลด items
 			Dropdown:Display()
 		end
 

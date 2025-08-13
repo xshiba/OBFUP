@@ -3908,7 +3908,7 @@ ElementsTable.Dropdown = (function()
 				local Values = Dropdown.Values
 				local Buttons = {}
 				
-				local LOAD_DELAY = 0.2
+				local LOAD_DELAY = 0.3
 				local IsLoading = false
 				local LoadingCoroutine = nil
 

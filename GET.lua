@@ -3478,7 +3478,24 @@ ElementsTable.Toggle = (function()
 
 	return Element
 end)()
-ElementsTable.Dropdown = (function()
+Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
+
+		-- เพิ่ม hover effect สำหรับ search icon
+		Creator.AddSignal(DropdownSearch.Focused, function()
+			TweenService:Create(
+				searchIcon,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				{ ImageColor3 = Color3.fromRGB(100, 150, 255), Size = UDim2.fromOffset(18, 18) }
+			):Play()
+		end)
+
+		Creator.AddSignal(DropdownSearch.FocusLost, function()
+			TweenService:Create(
+				searchIcon,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				{ ImageColor3 = Color3.fromRGB(140, 140, 150), Size = UDim2.fromOffset(16, 16) }
+			):Play()
+		end)ElementsTable.Dropdown = (function()
 	local Element = {}
 	Element.__index = Element
 	Element.__type = "Dropdown"
@@ -3493,7 +3510,11 @@ ElementsTable.Dropdown = (function()
 			Opened = false,
 			Type = "Dropdown",
 			Callback = Config.Callback or function() end,
-			Searchable = Config.Searchable or false
+			Searchable = Config.Searchable or false,
+			-- Lazy loading properties
+			LoadedItems = 0,
+			BatchSize = 20, -- จำนวน items ที่โหลดต่อครั้ง
+			IsLoadingBatch = false
 		}
 
 		if Dropdown.Multi and Config.AllowNull then
@@ -3598,10 +3619,11 @@ ElementsTable.Dropdown = (function()
 		}, {
 			DropdownScrollFrame,
 			New("UICorner", {
-				CornerRadius = UDim.new(0, 7),
+				CornerRadius = UDim.new(0, 8),
 			}),
 			New("UIStroke", {
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Thickness = 1.5,
 				ThemeTag = {
 					Color = "DropdownBorder",
 				},
@@ -3611,10 +3633,10 @@ ElementsTable.Dropdown = (function()
 				Image = "http://www.roblox.com/asset/?id=5554236805",
 				ScaleType = Enum.ScaleType.Slice,
 				SliceCenter = Rect.new(23, 23, 277, 277),
-				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(30, 30),
-				Position = UDim2.fromOffset(-15, -15),
+				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(40, 40),
+				Position = UDim2.fromOffset(-20, -20),
 				ImageColor3 = Color3.fromRGB(0, 0, 0),
-				ImageTransparency = 0.1,
+				ImageTransparency = 0.05,
 			}),
 		})
 
@@ -3629,12 +3651,43 @@ ElementsTable.Dropdown = (function()
 				MinSize = Vector2.new(170, 0),
 			}),
 		})
+
+		-- Loading indicator frame
+		local LoadingIndicator = New("Frame", {
+			Size = UDim2.new(1, -10, 0, 35),
+			BackgroundColor3 = Color3.fromRGB(55, 55, 65),
+			BackgroundTransparency = 0.3,
+			Parent = DropdownScrollFrame,
+			Name = "LoadingIndicator",
+			Visible = false,
+		}, {
+			New("TextLabel", {
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+				Text = "⟳ Loading more items...",
+				TextColor3 = Color3.fromRGB(180, 180, 190),
+				TextSize = 12,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				AutoLocalize = false,
+			}),
+			New("UICorner", {
+				CornerRadius = UDim.new(0, 8),
+			}),
+			New("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Thickness = 1,
+				Color = Color3.fromRGB(80, 80, 90),
+				Transparency = 0.5,
+			}),
+		})
  
 		-- SEARCHABLE BOX --
 
 		local Border = New("UIStroke", {
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Color = Color3.fromRGB(0, 0, 0),
+			Color = Color3.fromRGB(70, 70, 80),
+			Thickness = 1.5,
 			ThemeTag = {
 				Color = "ElementBorder",
 			},
@@ -3642,19 +3695,45 @@ ElementsTable.Dropdown = (function()
 
 		local searchIcon = New("ImageLabel", {
 			Image = "rbxassetid://10734943674",
-			Size = UDim2.fromOffset(18, 18),
+			Size = UDim2.fromOffset(16, 16),
 			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, 4, 0.5, 0),
+			Position = UDim2.new(0, 8, 0.5, 0),
 			BackgroundTransparency = 1,
 			Rotation = 0,
+			ImageColor3 = Color3.fromRGB(140, 140, 150),
 			ThemeTag = {
 				ImageColor3 = "SubText",
 			},
 		})
 
+		-- Clear button สำหรับ Multi dropdown
+		local clearButton = New("TextButton", {
+			Size = UDim2.fromOffset(20, 20),
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -8, 0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(220, 60, 60),
+			BackgroundTransparency = 0.2,
+			Text = "✕",
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextSize = 12,
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+			Visible = Config.Multi or false,
+			AutoLocalize = false,
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(0.5, 0),
+			}),
+			New("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Thickness = 1,
+				Color = Color3.fromRGB(180, 40, 40),
+				Transparency = 0.3,
+			}),
+		})
+
 		local SearchBase = New("Frame", {
 			Visible = false,
-			Size = UDim2.new(0, 170, 0, 30),
+			Size = UDim2.new(0, 170, 0, 35),
 			Parent = Library.GUI,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			ThemeTag = {
@@ -3662,25 +3741,36 @@ ElementsTable.Dropdown = (function()
 			},
 		}, {
 			New("UICorner", {
-				CornerRadius = UDim.new(0, 4),
+				CornerRadius = UDim.new(0, 8),
 			}),
 			searchIcon,
+			clearButton,
 			Border,
+			New("ImageLabel", {
+				BackgroundTransparency = 1,
+				Image = "http://www.roblox.com/asset/?id=5554236805",
+				ScaleType = Enum.ScaleType.Slice,
+				SliceCenter = Rect.new(23, 23, 277, 277),
+				Size = UDim2.fromScale(1, 1) + UDim2.fromOffset(20, 20),
+				Position = UDim2.fromOffset(-10, -10),
+				ImageColor3 = Color3.fromRGB(0, 0, 0),
+				ImageTransparency = 0.1,
+			}),
 		})
 
         local DropdownSearch = New("TextBox", {
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 			Text = "",
-			PlaceholderText = "Search...",
-			PlaceholderColor3 = Color3.fromRGB(240, 240, 240),
+			PlaceholderText = "🔍 Search items...",
+			PlaceholderColor3 = Color3.fromRGB(160, 160, 170),
             Parent = SearchBase,
 			TextColor3 = Color3.fromRGB(240, 240, 240),
-			TextSize = 14,
+			TextSize = 13,
 			TextYAlignment = Enum.TextYAlignment.Center,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Size = UDim2.new(1, -20, 1, 0),
-			Position = UDim2.new(0.5, 18, 0.5, 0),
-			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.new(1, Config.Multi and -50 or -25, 1, 0),
+			Position = UDim2.new(0, 25, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			LayoutOrder = 7,
@@ -3689,7 +3779,7 @@ ElementsTable.Dropdown = (function()
 			AutoLocalize = false,
 			ThemeTag = {
 				TextColor3 = "Text",
-				PlaceholderColor3 = "Text"
+				PlaceholderColor3 = "SubText"
 			},
 		})
 
@@ -3701,7 +3791,7 @@ ElementsTable.Dropdown = (function()
         local MAX_DROPDOWN_ITEMS = 5
 
         local MoveList = {
-            { Instance = DropdownHolderCanvas, YOffset = 35}, -- no custom offset
+            { Instance = DropdownHolderCanvas, YOffset = 40}, -- เพิ่ม offset สำหรับ search box ที่ใหญ่ขึ้น
             { Instance = SearchBase, YOffset = 0 }, -- custom Y offset
         }
 
@@ -3727,7 +3817,6 @@ ElementsTable.Dropdown = (function()
             end
         end
 
-
 		local ListSizeX = 0
 		local function RecalculateListSize()
 			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
@@ -3738,19 +3827,80 @@ ElementsTable.Dropdown = (function()
 		end
 
 		local function RecalculateCanvasSize()
-			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, DropdownListLayout.AbsoluteContentSize.Y)
+			-- คำนวณ canvas size จากจำนวน items ที่โหลดแล้ว + พื้นที่สำหรับ loading indicator
+			local loadedItems = Dropdown.LoadedItems
+			local totalItems = #Dropdown.Values
+			local itemHeight = 32
+			local itemPadding = 3
+			
+			-- ขนาดของ items ที่โหลดแล้ว
+			local loadedHeight = loadedItems * itemHeight + math.max(0, loadedItems - 1) * itemPadding
+			
+			-- เพิ่มพื้นที่สำหรับ loading indicator ถ้ายังโหลดไม่หมด
+			if loadedItems < totalItems then
+				loadedHeight = loadedHeight + 40 -- พื้นที่สำหรับ loading indicator + trigger zone
+			end
+			
+			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, loadedHeight)
 		end
 
 		RecalculateListPosition()
 		RecalculateListSize()
 
-		Creator.AddSignal(DropdownInner:GetPropertyChangedSignal("AbsolutePosition"), RecalculateListPosition)
+		-- เพิ่ม event สำหรับปุ่ม clear
+		Creator.AddSignal(clearButton.MouseButton1Click, function()
+			if Config.Multi and Dropdown.Value then
+				-- เคลียร์ค่าทั้งหมด
+				Dropdown.Value = {}
+				
+				-- อัพเดทปุ่มทั้งหมด
+				for _, ButtonTable in next, Dropdown.Buttons do
+					ButtonTable:UpdateButton()
+				end
+				
+				Dropdown:Display()
+				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+			end
+		end)
+
+		-- เพิ่ม hover effect สำหรับปุ่ม clear
+		Creator.AddSignal(clearButton.MouseEnter, function()
+			TweenService:Create(
+				clearButton,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				{ BackgroundTransparency = 0, Size = UDim2.fromOffset(22, 22) }
+			):Play()
+		end)
+
+		Creator.AddSignal(clearButton.MouseLeave, function()
+			TweenService:Create(
+				clearButton,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+				{ BackgroundTransparency = 0.2, Size = UDim2.fromOffset(20, 20) }
+			):Play()
+		end)
+
+		-- Scroll detection for lazy loading
+		Creator.AddSignal(DropdownScrollFrame:GetPropertyChangedSignal("CanvasPosition"), function()
+			if not Dropdown.Opened or Dropdown.IsLoadingBatch then return end
+			
+			local scrollFrame = DropdownScrollFrame
+			local scrollPosition = scrollFrame.CanvasPosition.Y
+			local scrollFrameHeight = scrollFrame.AbsoluteSize.Y
+			local canvasHeight = scrollFrame.CanvasSize.Y.Offset
+			
+			-- เช็คว่า scroll ถึงใกล้ท้ายแล้วมั้ย (เหลือ 50 pixels จาก content จริง)
+			if scrollPosition + scrollFrameHeight >= canvasHeight - 50 and Dropdown.LoadedItems < #Dropdown.Values then
+				Dropdown:LoadNextBatch()
+			end
+		end)
 
 		Creator.AddSignal(DropdownSearch:GetPropertyChangedSignal("Text"), function()
 			local Text = DropdownSearch.Text
 			if #Text == 0 then
 				for _, Element in next, DropdownScrollFrame:GetChildren() do
-					if not Element:IsA("UIListLayout") then
+					if not Element:IsA("UIListLayout") and Element.Name ~= "LoadingIndicator" then
 						local Value = Element.ButtonLabel.Text
 						local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
 						Element.Visible = true
@@ -3758,17 +3908,12 @@ ElementsTable.Dropdown = (function()
 				end
 			end
 			for _, Element in next, DropdownScrollFrame:GetChildren() do
-				if not Element:IsA("UIListLayout") then
+				if not Element:IsA("UIListLayout") and Element.Name ~= "LoadingIndicator" then
 					local Value = Element.ButtonLabel.Text
 					local Similar = Value:lower():match(Text:lower()) or Value:lower() == Text:lower()
 					Element.Visible = Similar and true or false
 				end
 			end
-			-- TweenService:Create(
-			-- 	DropdownHolderCanvas,
-			-- 	TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-			-- 	{ Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 10) }
-			-- ):Play()
 
 			RecalculateListPosition()
 			RecalculateListSize()
@@ -3784,7 +3929,6 @@ ElementsTable.Dropdown = (function()
 				repeat wait() until tick() - Tick > 5 or DropdownSearch:IsFocused()
 				if not DropdownSearch:IsFocused() then
 					DropdownSearch.Text = ""
-					-- Dropdown:Display()
 				end
 			end
 		end)
@@ -3828,7 +3972,6 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Open()
 			Dropdown.Opened = true
 			SearchBase.Visible = true
-			-- DropdownDisplay.Interactable = Dropdown.Searchable and true or false
 			ScrollFrame.ScrollingEnabled = false
 			DropdownHolderCanvas.Visible = true
 			TweenService:Create(
@@ -3841,9 +3984,6 @@ ElementsTable.Dropdown = (function()
 				TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 				{ Rotation = -90 }
 			):Play()
-			-- if Dropdown.Searchable then
-			-- 	DropdownDisplay:CaptureFocus()
-			-- end
 		end
 
 		function Dropdown:Close()
@@ -3903,336 +4043,265 @@ ElementsTable.Dropdown = (function()
 			Dropdown:BuildDropdownList()
 		end
 
+		-- ฟังก์ชันสำหรับโหลด item แต่ละตัว
+		local function LoadItem(Idx, Value)
+			local Table = {}
+
+			local ButtonSelector = New("Frame", {
+				Size = UDim2.fromOffset(3, 12),
+				BackgroundColor3 = Color3.fromRGB(76, 194, 255),
+				Position = UDim2.fromOffset(-2, 18),
+				AnchorPoint = Vector2.new(0, 0.5),
+				ThemeTag = {
+					BackgroundColor3 = "Accent",
+				},
+			}, {
+				New("UICorner", {
+					CornerRadius = UDim.new(0, 2),
+				}),
+			})
+
+			local ButtonLabel = New("TextLabel", {
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+				Text = tostring(Value), 
+				TextColor3 = Color3.fromRGB(220, 220, 230),
+				TextSize = 13,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				Position = UDim2.fromOffset(12, 0),
+				Name = "ButtonLabel",
+				AutoLocalize = false,
+				ThemeTag = {
+					TextColor3 = "Text",
+				},
+			})
+
+			-- เพิ่ม checkmark สำหรับ selected items
+			local CheckMark = New("TextLabel", {
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+				Text = "✓",
+				TextColor3 = Color3.fromRGB(76, 194, 255),
+				TextSize = 14,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(16, 16),
+				Position = UDim2.new(1, -20, 0.5, 0),
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Name = "CheckMark",
+				AutoLocalize = false,
+				Visible = false,
+				ThemeTag = {
+					TextColor3 = "Accent",
+				},
+			})
+
+			local Button = New("TextButton", {
+				Size = UDim2.new(1, -8, 0, 36),
+				BackgroundTransparency = 1,
+				ZIndex = 23,
+				Text = "",
+				Parent = DropdownScrollFrame,
+				LayoutOrder = Idx, -- สำคัญ: กำหนด order ให้ถูกต้อง
+				ThemeTag = {
+					BackgroundColor3 = "DropdownOption",
+				},
+			}, {
+				ButtonSelector,
+				ButtonLabel,
+				CheckMark,
+				New("UICorner", {
+					CornerRadius = UDim.new(0, 8),
+				}),
+				New("UIStroke", {
+					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+					Thickness = 1,
+					Color = Color3.fromRGB(60, 60, 70),
+					Transparency = 0.8,
+				}),
+			})
+
+			ButtonLabel.TextTransparency = 0
+
+			local Selected
+
+			if Config.Multi then
+				Selected = Dropdown.Value[Value]
+			else
+				Selected = Dropdown.Value == Value
+			end
+
+			local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
+			local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
+			local SelectorSizeMotor = Flipper.SingleMotor.new(6)
+			local CheckMotor, SetCheckTransparency = Creator.SpringMotor(1, CheckMark, "TextTransparency")
+
+			SelectorSizeMotor:onStep(function(value)
+				if ButtonSelector and ButtonSelector.Parent then
+					ButtonSelector.Size = UDim2.new(0, 3, 0, value)
+				end
+			end)
+
+			Creator.AddSignal(Button.MouseEnter, function()
+				SetBackTransparency(Selected and 0.75 or 0.85)
+				TweenService:Create(
+					Button,
+					TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+					{ Size = UDim2.new(1, -6, 0, 36) }
+				):Play()
+			end)
+			Creator.AddSignal(Button.MouseLeave, function()
+				SetBackTransparency(Selected and 0.85 or 1)
+				TweenService:Create(
+					Button,
+					TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+					{ Size = UDim2.new(1, -8, 0, 36) }
+				):Play()
+			end)
+			Creator.AddSignal(Button.MouseButton1Down, function()
+				SetBackTransparency(0.7)
+				TweenService:Create(
+					Button,
+					TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+					{ Size = UDim2.new(1, -10, 0, 34) }
+				):Play()
+			end)
+			Creator.AddSignal(Button.MouseButton1Up, function()
+				SetBackTransparency(Selected and 0.75 or 0.85)
+				TweenService:Create(
+					Button,
+					TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+					{ Size = UDim2.new(1, -6, 0, 36) }
+				):Play()
+			end)
+
+			function Table:UpdateButton()
+				if Config.Multi then
+					Selected = Dropdown.Value[Value]
+					if Selected then
+						SetBackTransparency(0.85)
+					end
+				else
+					Selected = Dropdown.Value == Value
+					SetBackTransparency(Selected and 0.85 or 1)
+				end
+
+				SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 18 or 6, { frequency = 8 }))
+				SetSelTransparency(Selected and 0 or 1)
+				SetCheckTransparency(Selected and 0 or 1)
+				CheckMark.Visible = Selected
+			end
+
+			AddSignal(Button.Activated, function()
+				local Try = not Selected
+
+				if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
+				else
+					if Config.Multi then
+						Selected = Try
+						Dropdown.Value[Value] = Selected and true or nil
+					else
+						Selected = Try
+						Dropdown.Value = Selected and Value or nil
+
+						for _, OtherButton in next, Dropdown.Buttons do
+							OtherButton:UpdateButton()
+						end
+					end
+
+					Table:UpdateButton()
+
+					if not (Dropdown.Searchable and #DropdownDisplay.Text > 0) then
+						Dropdown:Display()
+					end
+
+					Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+					Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+				end
+			end)
+
+			Table:UpdateButton()
+			Dropdown.Buttons[Button] = Table
+			
+			return Button
+		end
+
+		-- ฟังก์ชันโหลด batch ถัดไป
+		function Dropdown:LoadNextBatch()
+			if Dropdown.IsLoadingBatch or Dropdown.LoadedItems >= #Dropdown.Values then
+				return
+			end
+
+			Dropdown.IsLoadingBatch = true
+			LoadingIndicator.Visible = true
+			LoadingIndicator.LayoutOrder = 9999 -- ให้อยู่ล่างสุด
+
+			task.spawn(function()
+				local startIdx = Dropdown.LoadedItems + 1
+				local endIdx = math.min(startIdx + Dropdown.BatchSize - 1, #Dropdown.Values)
+
+				for i = startIdx, endIdx do
+					if Dropdown.Values[i] then
+						LoadItem(i, Dropdown.Values[i])
+						
+						-- อัพเดท text bounds สำหรับขนาด
+						if ListSizeX == 0 then
+							for Button, Table in next, Dropdown.Buttons do
+								if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
+									if Button.ButtonLabel.TextBounds.X > ListSizeX then
+										ListSizeX = Button.ButtonLabel.TextBounds.X
+									end
+								end
+							end
+							ListSizeX = ListSizeX + 30
+						end
+						
+						-- หยุดเล็กน้อยเพื่อไม่ให้แลค (ถ้าจำเป็น)
+						if i % 10 == 0 then
+							task.wait()
+						end
+					end
+				end
+
+				Dropdown.LoadedItems = endIdx
+				Dropdown.IsLoadingBatch = false
+				
+				-- อัพเดท canvas size ตามจำนวน items ที่โหลดแล้ว
+				RecalculateCanvasSize()
+				
+				-- ซ่อน loading indicator ถ้าโหลดครบแล้ว
+				if Dropdown.LoadedItems >= #Dropdown.Values then
+					LoadingIndicator.Visible = false
+				else
+					LoadingIndicator.Visible = false -- ซ่อนชั่วคราว จะแสดงอีกครั้งเมื่อ scroll
+				end
+
+				RecalculateListSize()
+				Dropdown:Display()
+			end)
+		end
+
 		function Dropdown:BuildDropdownList()
 			task.spawn(function()
-				local Values = Dropdown.Values
-				local Buttons = {}
-				
-				local LOAD_DELAY = 0.3
-				local IsLoading = false
-				local LoadingCoroutine = nil
-
+				-- เคลียร์ items เก่า
 				for _, Element in next, DropdownScrollFrame:GetChildren() do
-					if not Element:IsA("UIListLayout") then
+					if not Element:IsA("UIListLayout") and Element.Name ~= "LoadingIndicator" then
 						Element:Destroy()
 					end
 				end
 
-				if LoadingCoroutine then
-					coroutine.close(LoadingCoroutine)
-					LoadingCoroutine = nil
-				end
-
-				local TotalItems = #Values
-				
-				local InitialPlaceholder = New("Frame", {
-					Size = UDim2.new(1, -5, 0, 50),
-					BackgroundColor3 = Color3.fromRGB(45, 45, 55),
-					BackgroundTransparency = 0.8,
-					Parent = DropdownScrollFrame,
-					Name = "InitialPlaceholder",
-				}, {
-					New("TextLabel", {
-						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-						Text = "Loading " .. TotalItems .. " items...",
-						TextColor3 = Color3.fromRGB(150, 150, 150),
-						TextSize = 12,
-						TextXAlignment = Enum.TextXAlignment.Center,
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(1, 1),
-						AutoLocalize = false,
-					}),
-					New("UICorner", {
-						CornerRadius = UDim.new(0, 6),
-					}),
-				})
-
-				local DotsCoroutine = task.spawn(function()
-					local dots = ""
-					local dotCount = 0
-					while InitialPlaceholder and InitialPlaceholder.Parent and IsLoading do
-						dotCount = (dotCount % 3) + 1
-						dots = string.rep(".", dotCount) .. string.rep(" ", 3 - dotCount)
-						if InitialPlaceholder and InitialPlaceholder:FindFirstChild("TextLabel") then
-							InitialPlaceholder.TextLabel.Text = "Loading " .. TotalItems .. " items" .. dots
-						end
-						task.wait(0.4)
-					end
-				end)
-
-				local function LoadItem(Idx, Value)
-					local Table = {}
-
-					local ButtonSelector = New("Frame", {
-						Size = UDim2.fromOffset(4, 14),
-						BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-						Position = UDim2.fromOffset(-1, 16),
-						AnchorPoint = Vector2.new(0, 0.5),
-						ThemeTag = {
-							BackgroundColor3 = "Accent",
-						},
-					}, {
-						New("UICorner", {
-							CornerRadius = UDim.new(0, 2),
-						}),
-					})
-
-					local ButtonLabel = New("TextLabel", {
-						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-						Text = tostring(Value), 
-						TextColor3 = Color3.fromRGB(200, 200, 200),
-						TextSize = 13,
-						TextXAlignment = Enum.TextXAlignment.Left,
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						AutomaticSize = Enum.AutomaticSize.Y,
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(1, 1),
-						Position = UDim2.fromOffset(10, 0),
-						Name = "ButtonLabel",
-						AutoLocalize = false,
-						ThemeTag = {
-							TextColor3 = "Text",
-						},
-					})
-
-					local Button = New("TextButton", {
-						Size = UDim2.new(1, -5, 0, 32),
-						BackgroundTransparency = 1,
-						ZIndex = 23,
-						Text = "",
-						Parent = DropdownScrollFrame,
-						ThemeTag = {
-							BackgroundColor3 = "DropdownOption",
-						},
-					}, {
-						ButtonSelector,
-						ButtonLabel,
-						New("UICorner", {
-							CornerRadius = UDim.new(0, 6),
-						}),
-					})
-
-					ButtonLabel.TextTransparency = 0
-
-					local Selected
-
-					if Config.Multi then
-						Selected = Dropdown.Value[Value]
-					else
-						Selected = Dropdown.Value == Value
-					end
-
-					local BackMotor, SetBackTransparency = Creator.SpringMotor(1, Button, "BackgroundTransparency")
-					local SelMotor, SetSelTransparency = Creator.SpringMotor(1, ButtonSelector, "BackgroundTransparency")
-					local SelectorSizeMotor = Flipper.SingleMotor.new(6)
-
-					SelectorSizeMotor:onStep(function(value)
-						if ButtonSelector and ButtonSelector.Parent then
-							ButtonSelector.Size = UDim2.new(0, 4, 0, value)
-						end
-					end)
-
-					Creator.AddSignal(Button.MouseEnter, function()
-						SetBackTransparency(Selected and 0.85 or 0.89)
-					end)
-					Creator.AddSignal(Button.MouseLeave, function()
-						SetBackTransparency(Selected and 0.89 or 1)
-					end)
-					Creator.AddSignal(Button.MouseButton1Down, function()
-						SetBackTransparency(0.92)
-					end)
-					Creator.AddSignal(Button.MouseButton1Up, function()
-						SetBackTransparency(Selected and 0.85 or 0.89)
-					end)
-
-					function Table:UpdateButton()
-						if Config.Multi then
-							Selected = Dropdown.Value[Value]
-							if Selected then
-								SetBackTransparency(0.89)
-							end
-						else
-							Selected = Dropdown.Value == Value
-							SetBackTransparency(Selected and 0.89 or 1)
-						end
-
-						SelectorSizeMotor:setGoal(Flipper.Spring.new(Selected and 14 or 6, { frequency = 6 }))
-						SetSelTransparency(Selected and 0 or 1)
-					end
-
-					AddSignal(Button.Activated, function()
-						local Try = not Selected
-
-						if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
-						else
-							if Config.Multi then
-								Selected = Try
-								Dropdown.Value[Value] = Selected and true or nil
-							else
-								Selected = Try
-								Dropdown.Value = Selected and Value or nil
-
-								for _, OtherButton in next, Buttons do
-									OtherButton:UpdateButton()
-								end
-							end
-
-							Table:UpdateButton()
-
-							if Dropdown.Searchable and #DropdownDisplay.Text > 0 then
-
-							else
-								Dropdown:Display()
-							end
-
-							Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-							Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-						end
-					end)
-
-					Table:UpdateButton()
-					Buttons[Button] = Table
-					
-					return Button
-				end
-
-				local function StartLoadingItems()
-					if IsLoading then
-						return
-					end
-					
-					IsLoading = true
-					
-					LoadingCoroutine = coroutine.create(function()
-						task.wait(0.05)
-						
-						local loadedCount = 0
-						for Idx, Value in next, Values do
-							if Value then
-								LoadItem(Idx, Value)
-								loadedCount = loadedCount + 1
-								
-								if InitialPlaceholder and InitialPlaceholder:FindFirstChild("TextLabel") then
-									InitialPlaceholder.TextLabel.Text = "Loading " .. loadedCount .. "/" .. TotalItems .. " items..."
-								end
-								
-								task.wait(LOAD_DELAY)
-								
-								if loadedCount % 3 == 0 then
-									ListSizeX = 0
-									for Button, Table in next, Buttons do
-										if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
-											if Button.ButtonLabel.TextBounds.X > ListSizeX then
-												ListSizeX = Button.ButtonLabel.TextBounds.X
-											end
-										end
-									end
-									ListSizeX = ListSizeX + 30
-
-									RecalculateCanvasSize()
-									RecalculateListSize()
-								end
-							end
-						end
-						
-						if InitialPlaceholder and InitialPlaceholder.Parent then
-							task.wait(0.2)
-							InitialPlaceholder:Destroy()
-						end
-						
-						IsLoading = false
-						
-						if DotsCoroutine then
-							task.cancel(DotsCoroutine)
-						end
-						
-						ListSizeX = 0
-						for Button, Table in next, Buttons do
-							if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
-								if Button.ButtonLabel.TextBounds.X > ListSizeX then
-									ListSizeX = Button.ButtonLabel.TextBounds.X
-								end
-							end
-						end
-						ListSizeX = ListSizeX + 30
-
-						RecalculateCanvasSize()
-						RecalculateListSize()
-						Dropdown:Display()
-						LoadingCoroutine = nil
-					end)
-					
-					coroutine.resume(LoadingCoroutine)
-				end
-
-				StartLoadingItems()
-				
-				Dropdown.StopLoading = function()
-					if LoadingCoroutine then
-						coroutine.close(LoadingCoroutine)
-						LoadingCoroutine = nil
-						IsLoading = false
-						
-						if DotsCoroutine then
-							task.cancel(DotsCoroutine)
-						end
-						
-						if InitialPlaceholder and InitialPlaceholder.Parent then
-							InitialPlaceholder:Destroy()
-						end
-					end
-				end
-				
-				Dropdown.LoadAllItemsInstantly = function()
-					if LoadingCoroutine then
-						coroutine.close(LoadingCoroutine)
-						LoadingCoroutine = nil
-					end
-					
-					if DotsCoroutine then
-						task.cancel(DotsCoroutine)
-					end
-					
-					IsLoading = true
-					
-					if InitialPlaceholder and InitialPlaceholder.Parent then
-						InitialPlaceholder:Destroy()
-					end
-					
-					for Idx, Value in next, Values do
-						if Value then
-							LoadItem(Idx, Value)
-						end
-					end
-					
-					IsLoading = false
-					
-					ListSizeX = 0
-					for Button, Table in next, Buttons do
-						if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
-							if Button.ButtonLabel.TextBounds.X > ListSizeX then
-								ListSizeX = Button.ButtonLabel.TextBounds.X
-							end
-						end
-					end
-					ListSizeX = ListSizeX + 30
-
-					RecalculateCanvasSize()
-					RecalculateListSize()
-					Dropdown:Display()
-				end
-
-				Dropdown.SetLoadDelay = function(delay)
-					LOAD_DELAY = math.max(0.01, delay or 0.1)
-				end
-
-				Dropdown.IsLoading = function()
-					return IsLoading
-				end
-
+				Dropdown.Buttons = {}
+				Dropdown.LoadedItems = 0
 				ListSizeX = 0
-				RecalculateCanvasSize()
-				RecalculateListSize()
+
+				-- รีเซ็ต canvas size ให้เล็กก่อน
+				DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, 0)
+				
+				-- โหลด batch แรก
+				Dropdown:LoadNextBatch()
 			end)
 		end
 
@@ -4282,6 +4351,19 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Destroy()
 			DropdownFrame:Destroy()
 			Library.Options[Idx] = nil
+		end
+
+		-- ฟังก์ชันปรับแต่ง batch size
+		function Dropdown:SetBatchSize(size)
+			Dropdown.BatchSize = math.max(1, size or 20)
+		end
+
+		-- ฟังก์ชันโหลดทั้งหมดทันที (สำหรับกรณีพิเศษ)
+		function Dropdown:LoadAllItems()
+			while Dropdown.LoadedItems < #Dropdown.Values do
+				Dropdown:LoadNextBatch()
+				task.wait()
+			end
 		end
 
 		Dropdown:BuildDropdownList()

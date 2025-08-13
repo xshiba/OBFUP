@@ -3907,6 +3907,10 @@ ElementsTable.Dropdown = (function()
 			task.spawn(function()
 				local Values = Dropdown.Values
 				local Buttons = {}
+				
+				local LOAD_DELAY = 0.2
+				local IsLoading = false
+				local LoadingCoroutine = nil
 
 				for _, Element in next, DropdownScrollFrame:GetChildren() do
 					if not Element:IsA("UIListLayout") then
@@ -3914,12 +3918,50 @@ ElementsTable.Dropdown = (function()
 					end
 				end
 
-				local Count = 0
+				if LoadingCoroutine then
+					coroutine.close(LoadingCoroutine)
+					LoadingCoroutine = nil
+				end
 
-				for Idx, Value in next, Values do
+				local TotalItems = #Values
+				
+				local InitialPlaceholder = New("Frame", {
+					Size = UDim2.new(1, -5, 0, 50),
+					BackgroundColor3 = Color3.fromRGB(45, 45, 55),
+					BackgroundTransparency = 0.8,
+					Parent = DropdownScrollFrame,
+					Name = "InitialPlaceholder",
+				}, {
+					New("TextLabel", {
+						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+						Text = "Loading " .. TotalItems .. " items...",
+						TextColor3 = Color3.fromRGB(150, 150, 150),
+						TextSize = 12,
+						TextXAlignment = Enum.TextXAlignment.Center,
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+						AutoLocalize = false,
+					}),
+					New("UICorner", {
+						CornerRadius = UDim.new(0, 6),
+					}),
+				})
+
+				local DotsCoroutine = task.spawn(function()
+					local dots = ""
+					local dotCount = 0
+					while InitialPlaceholder and InitialPlaceholder.Parent and IsLoading do
+						dotCount = (dotCount % 3) + 1
+						dots = string.rep(".", dotCount) .. string.rep(" ", 3 - dotCount)
+						if InitialPlaceholder and InitialPlaceholder:FindFirstChild("TextLabel") then
+							InitialPlaceholder.TextLabel.Text = "Loading " .. TotalItems .. " items" .. dots
+						end
+						task.wait(0.4)
+					end
+				end)
+
+				local function LoadItem(Idx, Value)
 					local Table = {}
-
-					Count = Count + 1
 
 					local ButtonSelector = New("Frame", {
 						Size = UDim2.fromOffset(4, 14),
@@ -3937,7 +3979,7 @@ ElementsTable.Dropdown = (function()
 
 					local ButtonLabel = New("TextLabel", {
 						FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-						Text = Value,
+						Text = tostring(Value), 
 						TextColor3 = Color3.fromRGB(200, 200, 200),
 						TextSize = 13,
 						TextXAlignment = Enum.TextXAlignment.Left,
@@ -3970,6 +4012,8 @@ ElementsTable.Dropdown = (function()
 						}),
 					})
 
+					ButtonLabel.TextTransparency = 0
+
 					local Selected
 
 					if Config.Multi then
@@ -3983,7 +4027,9 @@ ElementsTable.Dropdown = (function()
 					local SelectorSizeMotor = Flipper.SingleMotor.new(6)
 
 					SelectorSizeMotor:onStep(function(value)
-						ButtonSelector.Size = UDim2.new(0, 4, 0, value)
+						if ButtonSelector and ButtonSelector.Parent then
+							ButtonSelector.Size = UDim2.new(0, 4, 0, value)
+						end
 					end)
 
 					Creator.AddSignal(Button.MouseEnter, function()
@@ -4045,22 +4091,146 @@ ElementsTable.Dropdown = (function()
 					end)
 
 					Table:UpdateButton()
-					Dropdown:Display()
-
 					Buttons[Button] = Table
-					wait(.2)
+					
+					return Button
 				end
 
-				ListSizeX = 0
-				for Button, Table in next, Buttons do
-					if Button.ButtonLabel then
-						if Button.ButtonLabel.TextBounds.X > ListSizeX then
-							ListSizeX = Button.ButtonLabel.TextBounds.X
+				local function StartLoadingItems()
+					if IsLoading then
+						return
+					end
+					
+					IsLoading = true
+					
+					LoadingCoroutine = coroutine.create(function()
+						task.wait(0.05)
+						
+						local loadedCount = 0
+						for Idx, Value in next, Values do
+							if Value then
+								LoadItem(Idx, Value)
+								loadedCount = loadedCount + 1
+								
+								if InitialPlaceholder and InitialPlaceholder:FindFirstChild("TextLabel") then
+									InitialPlaceholder.TextLabel.Text = "Loading " .. loadedCount .. "/" .. TotalItems .. " items..."
+								end
+								
+								task.wait(LOAD_DELAY)
+								
+								if loadedCount % 3 == 0 then
+									ListSizeX = 0
+									for Button, Table in next, Buttons do
+										if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
+											if Button.ButtonLabel.TextBounds.X > ListSizeX then
+												ListSizeX = Button.ButtonLabel.TextBounds.X
+											end
+										end
+									end
+									ListSizeX = ListSizeX + 30
+
+									RecalculateCanvasSize()
+									RecalculateListSize()
+								end
+							end
+						end
+						
+						if InitialPlaceholder and InitialPlaceholder.Parent then
+							task.wait(0.2)
+							InitialPlaceholder:Destroy()
+						end
+						
+						IsLoading = false
+						
+						if DotsCoroutine then
+							task.cancel(DotsCoroutine)
+						end
+						
+						ListSizeX = 0
+						for Button, Table in next, Buttons do
+							if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
+								if Button.ButtonLabel.TextBounds.X > ListSizeX then
+									ListSizeX = Button.ButtonLabel.TextBounds.X
+								end
+							end
+						end
+						ListSizeX = ListSizeX + 30
+
+						RecalculateCanvasSize()
+						RecalculateListSize()
+						Dropdown:Display()
+						LoadingCoroutine = nil
+					end)
+					
+					coroutine.resume(LoadingCoroutine)
+				end
+
+				StartLoadingItems()
+				
+				Dropdown.StopLoading = function()
+					if LoadingCoroutine then
+						coroutine.close(LoadingCoroutine)
+						LoadingCoroutine = nil
+						IsLoading = false
+						
+						if DotsCoroutine then
+							task.cancel(DotsCoroutine)
+						end
+						
+						if InitialPlaceholder and InitialPlaceholder.Parent then
+							InitialPlaceholder:Destroy()
 						end
 					end
 				end
-				ListSizeX = ListSizeX + 30
+				
+				Dropdown.LoadAllItemsInstantly = function()
+					if LoadingCoroutine then
+						coroutine.close(LoadingCoroutine)
+						LoadingCoroutine = nil
+					end
+					
+					if DotsCoroutine then
+						task.cancel(DotsCoroutine)
+					end
+					
+					IsLoading = true
+					
+					if InitialPlaceholder and InitialPlaceholder.Parent then
+						InitialPlaceholder:Destroy()
+					end
+					
+					for Idx, Value in next, Values do
+						if Value then
+							LoadItem(Idx, Value)
+						end
+					end
+					
+					IsLoading = false
+					
+					ListSizeX = 0
+					for Button, Table in next, Buttons do
+						if Button and Button.ButtonLabel and Button.ButtonLabel.TextBounds then
+							if Button.ButtonLabel.TextBounds.X > ListSizeX then
+								ListSizeX = Button.ButtonLabel.TextBounds.X
+							end
+						end
+					end
+					ListSizeX = ListSizeX + 30
 
+					RecalculateCanvasSize()
+					RecalculateListSize()
+					Dropdown:Display()
+				end
+
+				Dropdown.SetLoadDelay = function(delay)
+					LOAD_DELAY = math.max(0.01, delay or 0.1)
+				end
+
+				Dropdown.IsLoading = function()
+					return IsLoading
+				end
+
+				ListSizeX = 0
 				RecalculateCanvasSize()
 				RecalculateListSize()
 			end)

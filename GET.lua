@@ -4769,15 +4769,33 @@ ElementsTable.Slider = (function()
 			TextWrapped      = true,
 			TextXAlignment   = Enum.TextXAlignment.Right,
 			BackgroundTransparency = 1,
-			Size             = UDim2.new(0, 100, 0, 14),
+			Size             = UDim2.new(0, 80, 0, 14),
 			Position         = UDim2.new(0, -4, 0.5, 0),
 			AnchorPoint      = Vector2.new(1, 0.5),
 			ThemeTag         = { TextColor3 = "SubText" },
 		})
 
+		-- ── Pencil icon (hint ว่าแก้ได้) ─────────────────────
+		local EditIcon = New("ImageLabel", {
+			Image            = "rbxassetid://10734919691", -- lucide-pencil
+			Size             = UDim2.fromOffset(10, 10),
+			AnchorPoint      = Vector2.new(1, 0.5),
+			Position         = UDim2.new(0, -87, 0.5, 0),
+			BackgroundTransparency = 1,
+			ImageTransparency = 0.6,
+			ThemeTag         = { ImageColor3 = "SubText" },
+		})
+
+		-- ── Underline ใต้ textbox ─────────────────────────────
+		local DisplayUnderline = New("Frame", {
+			Size             = UDim2.new(0, 80, 0, 1),
+			AnchorPoint      = Vector2.new(1, 0),
+			Position         = UDim2.new(0, -4, 1, 2),
+			BackgroundTransparency = 1,
+			ThemeTag         = { BackgroundColor3 = "Accent" },
+		})
+
 		-- ── Rail ──────────────────────────────────────────────
-		--   NOTE: SliderRail is the CONTAINER (used for AbsolutePosition calc)
-		--         same name as original so drag math stays correct
 		local SliderRail = New("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(7, 0),
@@ -4805,9 +4823,7 @@ ElementsTable.Slider = (function()
 			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 		})
 
-		-- ── Thumb (replaces ImageLabel dot) ───────────────────
-		--   Position uses same UDim2.new(pct, -7, 0.5, 0) offset as original
-		--   so AbsolutePosition math works identically
+		-- ── Thumb ─────────────────────────────────────────────
 		local SliderDot = New("Frame", {
 			Size             = UDim2.fromOffset(14, 14),
 			AnchorPoint      = Vector2.new(0, 0.5),
@@ -4837,16 +4853,42 @@ ElementsTable.Slider = (function()
 			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 			New("UISizeConstraint", { MaxSize = Vector2.new(150, math.huge) }),
 			SliderDisplay,
-			RailBg,      -- thin visual rail (contains SliderFill inside)
-			SliderRail,  -- transparent hit container (contains SliderDot inside)
+			EditIcon,
+			DisplayUnderline,
+			RailBg,
+			SliderRail,
 		})
 
 		-- ── Easing ────────────────────────────────────────────
 		local TI_MOVE  = TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 		local TI_THUMB = TweenInfo.new(0.12, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
+		local TI_HINT  = TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-		-- ── Input bindings (identical logic to original) ──────
+		-- ── Hover/Focus hints ─────────────────────────────────
+		AddSignal(SliderFrame.Frame.MouseEnter, function()
+			if not Dragging then
+				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.1 }):Play()
+				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 0.4 }):Play()
+			end
+		end)
+		AddSignal(SliderFrame.Frame.MouseLeave, function()
+			if not SliderDisplay:IsFocused() then
+				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.6 }):Play()
+				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
+			end
+		end)
+
+		-- ── Input bindings ────────────────────────────────────
+		AddSignal(SliderDisplay.Focused, function()
+			TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 1   }):Play()
+			TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 0 }):Play()
+			SliderDisplay.TextXAlignment = Enum.TextXAlignment.Center
+		end)
+
 		AddSignal(SliderDisplay.FocusLost, function(enter)
+			TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.6 }):Play()
+			TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
+			SliderDisplay.TextXAlignment = Enum.TextXAlignment.Right
 			if not enter then return end
 			Slider:SetValue(tonumber(SliderDisplay.Text))
 		end)
@@ -4863,6 +4905,9 @@ ElementsTable.Slider = (function()
 			then
 				Dragging = true
 				TweenService:Create(SliderDot, TI_THUMB, { Size = UDim2.fromOffset(18, 18) }):Play()
+				-- ซ่อน hint ขณะ drag
+				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 1 }):Play()
+				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
 			end
 		end)
 
@@ -4880,7 +4925,6 @@ ElementsTable.Slider = (function()
 				Input.UserInputType == Enum.UserInputType.MouseMovement
 				or Input.UserInputType == Enum.UserInputType.Touch
 			) then
-				-- original uses SliderRail.AbsolutePosition — kept the same name
 				local SizeScale = math.clamp(
 					(Input.Position.X - SliderRail.AbsolutePosition.X) / SliderRail.AbsoluteSize.X,
 					0, 1
@@ -4909,7 +4953,6 @@ ElementsTable.Slider = (function()
 
 			local pct = (self.Value - Slider.Min) / (Slider.Max - Slider.Min)
 
-			-- thumb uses original offset convention: pct, -7
 			TweenService:Create(SliderDot,  TI_MOVE, { Position = UDim2.new(pct, -7, 0.5, 0)  }):Play()
 			TweenService:Create(SliderFill, TI_MOVE, { Size     = UDim2.fromScale(pct, 1)       }):Play()
 

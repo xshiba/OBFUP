@@ -4753,7 +4753,10 @@ ElementsTable.Slider = (function()
 		local Dragging = false
 
 		local SliderFrame = Components.Element(Config.Title, Config.Description, self.Container, false, Config)
-		SliderFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
+
+		-- title และ desc อยู่ซีกซ้ายเท่านั้น
+		SliderFrame.TitleLabel.Size = UDim2.new(0.55, 0, 0, 14)
+		SliderFrame.DescLabel.Size  = UDim2.new(0.55, 0, 0, 14)
 
 		Slider.Elements  = SliderFrame
 		Slider.SetTitle  = SliderFrame.SetTitle
@@ -4773,6 +4776,7 @@ ElementsTable.Slider = (function()
 			Position         = UDim2.new(1, -10, 0.5, 0),
 			AnchorPoint      = Vector2.new(1, 0.5),
 			ZIndex           = 4,
+			Parent           = SliderFrame.Frame,
 			ThemeTag         = { TextColor3 = "SubText", BackgroundColor3 = "Element" },
 		}, {
 			New("UICorner", { CornerRadius = UDim.new(0, 4) }),
@@ -4784,7 +4788,7 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		-- ── Rail container (เว้นพื้นที่ให้ display box) ───────
+		-- ── Rail ──────────────────────────────────────────────
 		local SliderRail = New("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(7, 0),
@@ -4830,11 +4834,11 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		-- ── Rail wrapper (แยกออกจาก display box ชัดเจน) ──────
+		-- ── Rail track (ซีกขวา เว้น display box) ──────────────
 		local SliderTrack = New("Frame", {
-			Size        = UDim2.new(1, -70, 0, 4),
+			Size        = UDim2.new(0.45, -70, 0, 4),
 			AnchorPoint = Vector2.new(0, 0.5),
-			Position    = UDim2.new(0, 10, 0.5, 0),
+			Position    = UDim2.new(0.55, 5, 0.5, 0),
 			BackgroundTransparency = 0.4,
 			Parent      = SliderFrame.Frame,
 			ThemeTag    = { BackgroundColor3 = "SliderRail" },
@@ -4843,9 +4847,6 @@ ElementsTable.Slider = (function()
 			RailBg,
 			SliderRail,
 		})
-
-		-- display box วางแยกบน Frame โดยตรง
-		SliderDisplay.Parent = SliderFrame.Frame
 
 		-- ── Easing ────────────────────────────────────────────
 		local TI_MOVE  = TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -4914,8 +4915,8 @@ ElementsTable.Slider = (function()
 
 			local pct = (self.Value - Slider.Min) / (Slider.Max - Slider.Min)
 
-			TweenService:Create(SliderDot,  TI_MOVE, { Position = UDim2.new(pct, -7, 0.5, 0)  }):Play()
-			TweenService:Create(SliderFill, TI_MOVE, { Size     = UDim2.fromScale(pct, 1)       }):Play()
+			TweenService:Create(SliderDot,  TI_MOVE, { Position = UDim2.new(pct, -7, 0.5, 0) }):Play()
+			TweenService:Create(SliderFill, TI_MOVE, { Size     = UDim2.fromScale(pct, 1)      }):Play()
 
 			SliderDisplay.Text = tostring(self.Value)
 

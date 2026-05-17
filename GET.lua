@@ -4760,42 +4760,31 @@ ElementsTable.Slider = (function()
 		Slider.SetDesc   = SliderFrame.SetDesc
 		Slider.Visible   = SliderFrame.Visible
 
-		-- ── Value text box ────────────────────────────────────
+		-- ── Value display box ─────────────────────────────────
 		local SliderDisplay = New("TextBox", {
 			FontFace         = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			Text             = tostring(Config.Default),
 			PlaceholderText  = "",
 			TextSize         = 12,
-			TextWrapped      = true,
-			TextXAlignment   = Enum.TextXAlignment.Right,
-			BackgroundTransparency = 1,
-			Size             = UDim2.new(0, 80, 0, 14),
-			Position         = UDim2.new(0, -4, 0.5, 0),
+			TextWrapped      = false,
+			TextXAlignment   = Enum.TextXAlignment.Center,
+			BackgroundTransparency = 0.85,
+			Size             = UDim2.new(0, 52, 0, 22),
+			Position         = UDim2.new(1, -10, 0.5, 0),
 			AnchorPoint      = Vector2.new(1, 0.5),
-			ThemeTag         = { TextColor3 = "SubText" },
+			ZIndex           = 4,
+			ThemeTag         = { TextColor3 = "SubText", BackgroundColor3 = "Element" },
+		}, {
+			New("UICorner", { CornerRadius = UDim.new(0, 4) }),
+			New("UIStroke", {
+				Thickness       = 1,
+				Transparency    = 0.5,
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				ThemeTag        = { Color = "InElementBorder" },
+			}),
 		})
 
-		-- ── Pencil icon (hint ว่าแก้ได้) ─────────────────────
-		local EditIcon = New("ImageLabel", {
-			Image            = "rbxassetid://10734919691", -- lucide-pencil
-			Size             = UDim2.fromOffset(10, 10),
-			AnchorPoint      = Vector2.new(1, 0.5),
-			Position         = UDim2.new(0, -87, 0.5, 0),
-			BackgroundTransparency = 1,
-			ImageTransparency = 0.6,
-			ThemeTag         = { ImageColor3 = "SubText" },
-		})
-
-		-- ── Underline ใต้ textbox ─────────────────────────────
-		local DisplayUnderline = New("Frame", {
-			Size             = UDim2.new(0, 80, 0, 1),
-			AnchorPoint      = Vector2.new(1, 0),
-			Position         = UDim2.new(0, -4, 1, 2),
-			BackgroundTransparency = 1,
-			ThemeTag         = { BackgroundColor3 = "Accent" },
-		})
-
-		-- ── Rail ──────────────────────────────────────────────
+		-- ── Rail container (เว้นพื้นที่ให้ display box) ───────
 		local SliderRail = New("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(7, 0),
@@ -4841,54 +4830,29 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		-- ── Outer container ───────────────────────────────────
-		local SliderInner = New("Frame", {
-			Size        = UDim2.new(1, 0, 0, 4),
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position    = UDim2.new(1, -10, 0.5, 0),
+		-- ── Rail wrapper (แยกออกจาก display box ชัดเจน) ──────
+		local SliderTrack = New("Frame", {
+			Size        = UDim2.new(1, -70, 0, 4),
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position    = UDim2.new(0, 10, 0.5, 0),
 			BackgroundTransparency = 0.4,
 			Parent      = SliderFrame.Frame,
 			ThemeTag    = { BackgroundColor3 = "SliderRail" },
 		}, {
 			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
-			New("UISizeConstraint", { MaxSize = Vector2.new(150, math.huge) }),
-			SliderDisplay,
-			EditIcon,
-			DisplayUnderline,
 			RailBg,
 			SliderRail,
 		})
 
+		-- display box วางแยกบน Frame โดยตรง
+		SliderDisplay.Parent = SliderFrame.Frame
+
 		-- ── Easing ────────────────────────────────────────────
 		local TI_MOVE  = TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 		local TI_THUMB = TweenInfo.new(0.12, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
-		local TI_HINT  = TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-
-		-- ── Hover/Focus hints ─────────────────────────────────
-		AddSignal(SliderFrame.Frame.MouseEnter, function()
-			if not Dragging then
-				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.1 }):Play()
-				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 0.4 }):Play()
-			end
-		end)
-		AddSignal(SliderFrame.Frame.MouseLeave, function()
-			if not SliderDisplay:IsFocused() then
-				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.6 }):Play()
-				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
-			end
-		end)
 
 		-- ── Input bindings ────────────────────────────────────
-		AddSignal(SliderDisplay.Focused, function()
-			TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 1   }):Play()
-			TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 0 }):Play()
-			SliderDisplay.TextXAlignment = Enum.TextXAlignment.Center
-		end)
-
 		AddSignal(SliderDisplay.FocusLost, function(enter)
-			TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 0.6 }):Play()
-			TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
-			SliderDisplay.TextXAlignment = Enum.TextXAlignment.Right
 			if not enter then return end
 			Slider:SetValue(tonumber(SliderDisplay.Text))
 		end)
@@ -4905,9 +4869,6 @@ ElementsTable.Slider = (function()
 			then
 				Dragging = true
 				TweenService:Create(SliderDot, TI_THUMB, { Size = UDim2.fromOffset(18, 18) }):Play()
-				-- ซ่อน hint ขณะ drag
-				TweenService:Create(EditIcon,         TI_HINT, { ImageTransparency = 1 }):Play()
-				TweenService:Create(DisplayUnderline, TI_HINT, { BackgroundTransparency = 1 }):Play()
 			end
 		end)
 

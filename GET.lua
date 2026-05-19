@@ -20,6 +20,7 @@ local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
 
 local Themes = {
 	Names = {
+		"Midnight Blue",
 		"Amethyst Maru",
 		"Crimson Dark",
 		"Ember",
@@ -103,9 +104,9 @@ local Themes = {
 
 		SliderRail = Color3.fromRGB(51, 51, 51),
 
-		DropdownFrame = Color3.fromRGB(68, 68, 68),
-		DropdownHolder = Color3.fromRGB(68, 68, 68),
-		DropdownBorder = Color3.fromRGB(38, 38, 38),
+		DropdownFrame = Color3.fromRGB(38, 38, 46),
+		DropdownHolder = Color3.fromRGB(32, 32, 40),
+		DropdownBorder = Color3.fromRGB(70, 70, 85),
 		DropdownOption = Color3.fromRGB(153, 200, 255),
 
 		Keybind = Color3.fromRGB(54, 54, 54),
@@ -127,6 +128,54 @@ local Themes = {
 		SubText = Color3.fromRGB(158, 158, 158),
 		Hover = Color3.fromRGB(149, 149, 149),
 		HoverChange = 0.04
+	},
+	["Midnight Blue"] = {
+	    Name = "Midnight Blue",
+	    Accent = Color3.fromRGB(100, 180, 220),
+	
+		AcrylicMain = Color3.fromRGB(18, 18, 22),
+	    AcrylicBorder = Color3.fromRGB(45, 45, 52),
+	    AcrylicGradient = ColorSequence.new(Color3.fromRGB(22, 22, 26), Color3.fromRGB(22, 22, 26)),
+	    AcrylicNoise = 0.94,
+	
+	    TitleBarLine = Color3.fromRGB(45, 45, 52),
+	    Tab = Color3.fromRGB(130, 130, 140),
+	
+		Element = Color3.fromRGB(38, 38, 46),
+		ElementBorder = Color3.fromRGB(55, 55, 65),
+		InElementBorder = Color3.fromRGB(75, 75, 88),
+		ElementTransparency = 0.1,
+	
+	    ToggleSlider = Color3.fromRGB(100, 180, 220),
+	    ToggleToggled = Color3.fromRGB(22, 22, 26),
+	
+	    SliderRail = Color3.fromRGB(55, 55, 65),
+	
+	    DropdownFrame = Color3.fromRGB(32, 32, 38),
+	    DropdownHolder = Color3.fromRGB(28, 28, 34),
+	    DropdownBorder = Color3.fromRGB(45, 45, 52),
+	    DropdownOption = Color3.fromRGB(150, 150, 160),
+	
+	    Keybind = Color3.fromRGB(32, 32, 38),
+	
+	    Input = Color3.fromRGB(26, 26, 32),
+	    InputFocused = Color3.fromRGB(32, 32, 40),
+	    InputIndicator = Color3.fromRGB(100, 180, 220),
+	    InputIndicatorFocus = Color3.fromRGB(100, 180, 220),
+	
+	    Dialog = Color3.fromRGB(32, 32, 38),
+	    DialogHolder = Color3.fromRGB(26, 26, 32),
+	    DialogHolderLine = Color3.fromRGB(45, 45, 52),
+	    DialogButton = Color3.fromRGB(32, 32, 38),
+	    DialogButtonBorder = Color3.fromRGB(45, 45, 52),
+	    DialogBorder = Color3.fromRGB(45, 45, 52),
+	    DialogInput = Color3.fromRGB(26, 26, 32),
+	    DialogInputLine = Color3.fromRGB(100, 180, 220),
+	
+	    Text = Color3.fromRGB(195, 195, 205),
+	    SubText = Color3.fromRGB(125, 125, 135),
+	    Hover = Color3.fromRGB(45, 45, 55),
+	    HoverChange = 0.04,
 	},
 	["Amethyst Maru"] = {
 		Name = "Amethyst Maru",
@@ -1963,6 +2012,7 @@ Components.Element = function(Title, Desc, Parent, Hover, Options)
 
 	return Element
 end
+
 Components.Section = function(Title, Parent)
 	local Section = {}
 
@@ -1989,7 +2039,7 @@ Components.Section = function(Title, Parent)
 			Text = Title,
 			TextTransparency = 0,
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-			TextSize = 18,
+			TextSize = 22,
 			TextXAlignment = "Left",
 			TextYAlignment = "Center",
 			Size = UDim2.new(1, -16, 0, 18),
@@ -2562,7 +2612,7 @@ Components.Notification = (function()
 			Closed = false,
 		}
 
-		NewNotification.AcrylicPaint = Acrylic.AcrylicPaint()
+		--NewNotification.AcrylicPaint = Acrylic.AcrylicPaint()
 
 		NewNotification.Title = New("TextLabel", {
 			Position = UDim2.new(0, 14, 0, 17),
@@ -2653,14 +2703,19 @@ Components.Notification = (function()
 		})
 
 		NewNotification.Root = New("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-			Position = UDim2.fromScale(1, 0),
+		    BackgroundTransparency = 0,
+		    Size = UDim2.new(1, 0, 1, 0),
+		    Position = UDim2.fromScale(1, 0),
+		    ThemeTag = { BackgroundColor3 = "AcrylicMain" },
 		}, {
-			NewNotification.AcrylicPaint.Frame,
-			NewNotification.Title,
-			NewNotification.CloseButton,
-			NewNotification.LabelHolder,
+		    New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		    New("UIStroke", {
+		        Transparency = 0.5,
+		        ThemeTag = { Color = "AcrylicBorder" },
+		    }),
+		    NewNotification.Title,
+		    NewNotification.CloseButton,
+		    NewNotification.LabelHolder,
 		})
 
 		if Config.Content == "" then
@@ -2711,9 +2766,9 @@ Components.Notification = (function()
 						Offset = Spring(60, { frequency = 5 }),
 					})
 					task.wait(0.4)
-					if Library.UseAcrylic then
-						NewNotification.AcrylicPaint.Model:Destroy()
-					end
+					-- if Library.UseAcrylic then
+					-- 	NewNotification.AcrylicPaint.Model:Destroy()
+					-- end
 					NewNotification.Holder:Destroy()
 				end)
 			end
@@ -3091,7 +3146,7 @@ Components.Window = (function()
 		local Resizing, ResizePos = false
 		local MinimizeNotif = false
 
-		Window.AcrylicPaint = Acrylic.AcrylicPaint()
+		--Window.AcrylicPaint = Acrylic.AcrylicPaint()
 		Window.TabWidth = Config.TabWidth
 
 		local Selector = New("Frame", {
@@ -3201,18 +3256,31 @@ Components.Window = (function()
 			Window.ContainerHolder,
 		})
 
-		Window.Root = New("Frame", {
-			BackgroundTransparency = 1,
-			Size                   = Window.Size,
-			Position               = Window.Position,
-			Parent                 = Config.Parent,
+		local AcrylicFrame = New("Frame", {
+		    Size = UDim2.fromScale(1, 1),
+		    ThemeTag = { BackgroundColor3 = "AcrylicMain" },
 		}, {
-			Window.AcrylicPaint.Frame,
-			Window.TabDisplay,
-			Window.ContainerCanvas,
-			TabFrame,
-			ResizeStartFrame,
-			-- Icon ถูกลบออกแล้ว
+		    New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		})
+		
+		Window.AcrylicPaint = {
+		    Frame = AcrylicFrame,
+		    Model = nil,
+		    AddParent = function() end,
+		    SetVisibility = function() end,
+		}
+		
+		Window.Root = New("Frame", {
+		    BackgroundTransparency = 1,
+		    Size = Window.Size,
+		    Position = Window.Position,
+		    Parent = Config.Parent,
+		}, {
+		    AcrylicFrame,   -- ใช้ตัวแปร แทน Window.AcrylicPaint.Frame
+		    Window.TabDisplay,
+		    Window.ContainerCanvas,
+		    TabFrame,
+		    ResizeStartFrame,
 		})
 
 		Window.TitleBar = Components.TitleBar({
@@ -3422,9 +3490,9 @@ Components.Window = (function()
 		end
 
 		function Window:Destroy()
-			if Library.UseAcrylic then
-				Window.AcrylicPaint.Model:Destroy()
-			end
+			-- if Library.UseAcrylic then
+			-- 	Window.AcrylicPaint.Model:Destroy()
+			-- end
 			Window.Root:Destroy()
 		end
 
@@ -3559,7 +3627,7 @@ ElementsTable.Toggle = (function()
 
 		-- ── Track (pill) ──────────────────────────────────────
 		local Track = New("Frame", {
-			Size             = UDim2.fromOffset(40, 22),
+			Size             = UDim2.fromOffset(44, 24),
 			AnchorPoint      = Vector2.new(1, 0.5),
 			Position         = UDim2.new(1, -10, 0.5, 0),
 			BackgroundColor3 = Color3.fromRGB(60, 60, 60),
@@ -3611,7 +3679,7 @@ ElementsTable.Toggle = (function()
 		-- ON state
 		local function applyOn()
 			TweenService:Create(Fill,  TI_FAST, { Size     = UDim2.fromScale(1, 1)    }):Play()
-			TweenService:Create(Thumb, TI_BACK, { Position = UDim2.new(0, 21, 0.5, 0) }):Play()
+			TweenService:Create(Thumb, TI_BACK, { Position = UDim2.new(0, 23, 0.5, 0)}):Play()
 		end
 
 		-- Press squish
@@ -3841,25 +3909,25 @@ ElementsTable.Dropdown = (function()
 		})
 
 		local DropdownHolderFrame = New("Frame", {
-			Size             = UDim2.fromScale(1, 0.6),
-			ThemeTag         = { BackgroundColor3 = "DropdownHolder" },
+		    Size             = UDim2.fromScale(1, 0.6),
+		    ThemeTag         = { BackgroundColor3 = "DropdownHolder" },
 		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, 20),      -- มนขึ้นจาก 10
-			}),
-			New("UIStroke", {
-				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-				Transparency    = 0.55,
-				ThemeTag        = { Color = "DropdownBorder" },
-			}),
-			DropdownScrollFrame,
+		    New("UICorner", {
+		        CornerRadius = UDim.new(0, 20),
+		    }),
+		    New("UIStroke", {
+		        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		        Transparency    = 0.5,
+		        ThemeTag        = { Color = "InElementBorder" },
+		    }),
+		    DropdownScrollFrame,
 		})
 
 		local DropdownHolderCanvas = New("Frame", {
-			BackgroundTransparency = 1,
-			Size             = UDim2.fromOffset(170, 300),
-			Parent           = Library.GUI,
-			Visible          = false,
+		    BackgroundTransparency = 1,
+		    Size             = UDim2.fromOffset(170, 300),
+		    Parent           = Library.GUI,
+		    Visible          = false,
 		}, {
 			DropdownHolderFrame,
 			New("UISizeConstraint", {
@@ -4021,7 +4089,7 @@ ElementsTable.Dropdown = (function()
 			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
 				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, (42 * MAX_DROPDOWN_ITEMS) - 10) -- ปรับขนาดตาม item ที่ใหญ่ขึ้น
 			else
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 15)
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 30)
 			end
 		end
 
@@ -4754,16 +4822,15 @@ ElementsTable.Slider = (function()
 
 		local SliderFrame = Components.Element(Config.Title, Config.Description, self.Container, false, Config)
 
-		-- title และ desc อยู่ซีกซ้ายเท่านั้น
-		SliderFrame.TitleLabel.Size = UDim2.new(0.55, 0, 0, 14)
-		SliderFrame.DescLabel.Size  = UDim2.new(0.55, 0, 0, 14)
+		SliderFrame.TitleLabel.Size = UDim2.new(1, -60, 0, 14)
+		SliderFrame.DescLabel.Size  = UDim2.new(1, -60, 0, 14)
 
 		Slider.Elements  = SliderFrame
 		Slider.SetTitle  = SliderFrame.SetTitle
 		Slider.SetDesc   = SliderFrame.SetDesc
 		Slider.Visible   = SliderFrame.Visible
 
-		-- ── Value display box ─────────────────────────────────
+		-- ── Value display box (ขวาบน) ────────────────────────
 		local SliderDisplay = New("TextBox", {
 			FontFace         = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			Text             = tostring(Config.Default),
@@ -4772,9 +4839,9 @@ ElementsTable.Slider = (function()
 			TextWrapped      = false,
 			TextXAlignment   = Enum.TextXAlignment.Center,
 			BackgroundTransparency = 0.85,
-			Size             = UDim2.new(0, 52, 0, 22),
-			Position         = UDim2.new(1, -10, 0.5, 0),
-			AnchorPoint      = Vector2.new(1, 0.5),
+			Size             = UDim2.new(0, 48, 0, 20),
+			Position         = UDim2.new(1, -10, 0, 8),
+			AnchorPoint      = Vector2.new(1, 0),
 			ZIndex           = 4,
 			Parent           = SliderFrame.Frame,
 			ThemeTag         = { TextColor3 = "SubText", BackgroundColor3 = "Element" },
@@ -4788,7 +4855,7 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		-- ── Rail ──────────────────────────────────────────────
+		-- ── Rail container ────────────────────────────────────
 		local SliderRail = New("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(7, 0),
@@ -4834,11 +4901,11 @@ ElementsTable.Slider = (function()
 			}),
 		})
 
-		-- ── Rail track (ซีกขวา เว้น display box) ──────────────
+		-- ── Rail track อยู่ล่างสุดของ element ────────────────
 		local SliderTrack = New("Frame", {
-			Size        = UDim2.new(0.45, -70, 0, 4),
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position    = UDim2.new(0.55, 5, 0.5, 0),
+			Size        = UDim2.new(1, -20, 0, 4),
+			AnchorPoint = Vector2.new(0, 1),
+			Position    = UDim2.new(0, 10, 1, -8),
 			BackgroundTransparency = 0.4,
 			Parent      = SliderFrame.Frame,
 			ThemeTag    = { BackgroundColor3 = "SliderRail" },
@@ -4846,6 +4913,12 @@ ElementsTable.Slider = (function()
 			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 			RailBg,
 			SliderRail,
+		})
+
+		-- padding ล่างให้ frame ขยายพอรับ rail
+		New("UIPadding", {
+			PaddingBottom = UDim.new(0, 28),
+			Parent        = SliderFrame.LabelHolder,
 		})
 
 		-- ── Easing ────────────────────────────────────────────
@@ -7350,9 +7423,9 @@ end
 function Library:Destroy()
 	if Library.Window then
 		Library.Unloaded = true
-		if Library.UseAcrylic then
-			Library.Window.AcrylicPaint.Model:Destroy()
-		end
+		-- if Library.UseAcrylic then
+		-- 	Library.Window.AcrylicPaint.Model:Destroy()
+		-- end
 		Creator.Disconnect()
 		Library.GUI:Destroy()
 	end
@@ -7373,9 +7446,9 @@ function Library:ToggleAcrylic(Value)
 end
 
 function Library:ToggleTransparency(Value)
-	if Library.Window then
-		Library.Window.AcrylicPaint.Frame.Background.BackgroundTransparency = Value and 0.35 or 0
-	end
+	-- if Library.Window then
+	-- 	Library.Window.AcrylicPaint.Frame.Background.BackgroundTransparency = Value and 0.35 or 0
+	-- end
 end
 
 function Library:Notify(Config)

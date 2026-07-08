@@ -131,50 +131,50 @@ local Themes = {
 	},
 	["Midnight Blue"] = {
 	    Name = "Midnight Blue",
-	    Accent = Color3.fromRGB(110, 180, 220),
-
-		AcrylicMain = Color3.fromRGB(30, 32, 40),        -- dark slate (soft on eyes, not near-black)
-	    AcrylicBorder = Color3.fromRGB(58, 62, 74),
-	    AcrylicGradient = ColorSequence.new(Color3.fromRGB(34, 36, 44), Color3.fromRGB(28, 30, 38)),
+	    Accent = Color3.fromRGB(100, 180, 220),
+	
+		AcrylicMain = Color3.fromRGB(18, 18, 22),
+	    AcrylicBorder = Color3.fromRGB(45, 45, 52),
+	    AcrylicGradient = ColorSequence.new(Color3.fromRGB(22, 22, 26), Color3.fromRGB(22, 22, 26)),
 	    AcrylicNoise = 0.94,
-
-	    TitleBarLine = Color3.fromRGB(58, 62, 74),
-	    Tab = Color3.fromRGB(140, 145, 158),
-
-		Element = Color3.fromRGB(46, 50, 60),
-		ElementBorder = Color3.fromRGB(70, 74, 88),
-		InElementBorder = Color3.fromRGB(88, 92, 108),
+	
+	    TitleBarLine = Color3.fromRGB(45, 45, 52),
+	    Tab = Color3.fromRGB(130, 130, 140),
+	
+		Element = Color3.fromRGB(38, 38, 46),
+		ElementBorder = Color3.fromRGB(55, 55, 65),
+		InElementBorder = Color3.fromRGB(75, 75, 88),
 		ElementTransparency = 0.1,
 	
-	    ToggleSlider = Color3.fromRGB(110, 180, 220),
-	    ToggleToggled = Color3.fromRGB(30, 32, 40),
-
-	    SliderRail = Color3.fromRGB(70, 74, 88),
-
-	    DropdownFrame = Color3.fromRGB(40, 44, 54),
-	    DropdownHolder = Color3.fromRGB(34, 38, 48),
-	    DropdownBorder = Color3.fromRGB(68, 72, 86),
-	    DropdownOption = Color3.fromRGB(170, 175, 190),
-
-	    Keybind = Color3.fromRGB(40, 44, 54),
-
-	    Input = Color3.fromRGB(36, 40, 50),
-	    InputFocused = Color3.fromRGB(44, 48, 58),
-	    InputIndicator = Color3.fromRGB(110, 180, 220),
-	    InputIndicatorFocus = Color3.fromRGB(110, 180, 220),
-
-	    Dialog = Color3.fromRGB(40, 44, 54),
-	    DialogHolder = Color3.fromRGB(34, 38, 48),
-	    DialogHolderLine = Color3.fromRGB(58, 62, 74),
-	    DialogButton = Color3.fromRGB(40, 44, 54),
-	    DialogButtonBorder = Color3.fromRGB(68, 72, 86),
-	    DialogBorder = Color3.fromRGB(68, 72, 86),
-	    DialogInput = Color3.fromRGB(36, 40, 50),
-	    DialogInputLine = Color3.fromRGB(110, 180, 220),
-
-	    Text = Color3.fromRGB(215, 218, 226),
-	    SubText = Color3.fromRGB(150, 155, 170),
-	    Hover = Color3.fromRGB(68, 72, 86),
+	    ToggleSlider = Color3.fromRGB(100, 180, 220),
+	    ToggleToggled = Color3.fromRGB(22, 22, 26),
+	
+	    SliderRail = Color3.fromRGB(55, 55, 65),
+	
+	    DropdownFrame = Color3.fromRGB(32, 32, 38),
+	    DropdownHolder = Color3.fromRGB(28, 28, 34),
+	    DropdownBorder = Color3.fromRGB(45, 45, 52),
+	    DropdownOption = Color3.fromRGB(150, 150, 160),
+	
+	    Keybind = Color3.fromRGB(32, 32, 38),
+	
+	    Input = Color3.fromRGB(26, 26, 32),
+	    InputFocused = Color3.fromRGB(32, 32, 40),
+	    InputIndicator = Color3.fromRGB(100, 180, 220),
+	    InputIndicatorFocus = Color3.fromRGB(100, 180, 220),
+	
+	    Dialog = Color3.fromRGB(32, 32, 38),
+	    DialogHolder = Color3.fromRGB(26, 26, 32),
+	    DialogHolderLine = Color3.fromRGB(45, 45, 52),
+	    DialogButton = Color3.fromRGB(32, 32, 38),
+	    DialogButtonBorder = Color3.fromRGB(45, 45, 52),
+	    DialogBorder = Color3.fromRGB(45, 45, 52),
+	    DialogInput = Color3.fromRGB(26, 26, 32),
+	    DialogInputLine = Color3.fromRGB(100, 180, 220),
+	
+	    Text = Color3.fromRGB(195, 195, 205),
+	    SubText = Color3.fromRGB(125, 125, 135),
+	    Hover = Color3.fromRGB(45, 45, 55),
 	    HoverChange = 0.04,
 	},
 	["Amethyst Maru"] = {
@@ -806,191 +806,7 @@ local Library = {
 	MinimizeKeybind = nil,
 	MinimizerIcon = nil,
 	MinimizeKey = Enum.KeyCode.LeftControl,
-
-	-- === Search index ===
-	_Tabs = {},
-	_SidebarQuery = "",   -- global search (left box) — filters ALL tabs
-	_HeaderQuery = "",    -- header search (right box) — filters only ACTIVE tab
-	_SearchSidebar = nil,
-	_SearchHeader = nil,
-	_TabModule = nil,     -- set by Window when TabModule is initialised
 }
-
-local function _searchMatches(query, ...)
-	if query == nil or query == "" then return true end
-	query = query:lower()
-	for _, text in ipairs({ ... }) do
-		if type(text) == "string" and text ~= "" and text:lower():find(query, 1, true) then
-			return true
-		end
-	end
-	return false
-end
-
-local function _elementPasses(rec, query)
-	if query == "" then return true end
-	return _searchMatches(query, rec.Title, rec.Description)
-end
-
-local function _sectionMatchesName(sec, query)
-	if query == "" then return true end
-	return _searchMatches(query, sec.SectionTitle)
-end
-
--- Recompute visibility for a single tab. `activeTabIndex` is passed so we
--- know whether to apply the header (per-tab) filter for this tab.
-local function _applyTabVisibility(Tab, sidebarQ, headerQ, isActive)
-	local sEmpty = sidebarQ == ""
-	local hEmpty = headerQ == ""
-
-	local sectionHitCount = 0
-	local elementHitCount = 0
-
-	-- Direct-on-tab elements
-	if Tab._elements then
-		for _, rec in ipairs(Tab._elements) do
-			if rec._directOnTab and rec.Frame then
-				local passSidebar = sEmpty or _elementPasses(rec, sidebarQ)
-				local passHeader = (not isActive) or hEmpty or _elementPasses(rec, headerQ)
-				local visible = passSidebar and passHeader
-				rec.Frame.Visible = visible
-				if visible and (not sEmpty or (isActive and not hEmpty)) then
-					elementHitCount = elementHitCount + 1
-				end
-			end
-		end
-	end
-
-	-- Sections
-	if Tab._sections then
-		for _, sec in ipairs(Tab._sections) do
-			local secMatchSidebar = _sectionMatchesName(sec, sidebarQ)
-			local secMatchHeader = _sectionMatchesName(sec, headerQ)
-			local anyChildVisible = false
-			if sec._elements then
-				for _, rec in ipairs(sec._elements) do
-					if rec.Frame then
-						local passSidebar = sEmpty
-							or secMatchSidebar
-							or _elementPasses(rec, sidebarQ)
-						local passHeader = (not isActive) or hEmpty
-							or secMatchHeader
-							or _elementPasses(rec, headerQ)
-						local visible = passSidebar and passHeader
-						rec.Frame.Visible = visible
-						if visible then anyChildVisible = true end
-					end
-				end
-			end
-			if sec.Root then
-				local sectionVisible = anyChildVisible or (sEmpty and (not isActive or hEmpty))
-				-- If nothing under the section is visible but the section
-				-- itself matches the query, still show the header alone.
-				if not sectionVisible and (not sEmpty and secMatchSidebar) then
-					sectionVisible = true
-				end
-				sec.Root.Visible = sectionVisible
-			end
-			if anyChildVisible or secMatchSidebar then
-				sectionHitCount = sectionHitCount + 1
-			end
-		end
-	end
-
-	return sectionHitCount, elementHitCount
-end
-
-function Library:_ApplySidebarSearch(query)
-	query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
-	self._SidebarQuery = query
-	local sEmpty = query == ""
-
-	local activeIndex = self._TabModule and self._TabModule.SelectedTab or 0
-	local firstVisibleTab, firstMatchingTab
-
-	for idx, Tab in ipairs(self._Tabs) do
-		local tabNameHit = _searchMatches(query, Tab.Name)
-		local secHits, elemHits = _applyTabVisibility(Tab, query, self._HeaderQuery, idx == activeIndex)
-		local anyHit = tabNameHit or secHits > 0 or elemHits > 0
-		if Tab.Frame then
-			Tab.Frame.Visible = sEmpty or anyHit
-		end
-		if Tab.Frame and Tab.Frame.Visible and not firstVisibleTab then
-			firstVisibleTab = idx
-		end
-		if not sEmpty and anyHit and not firstMatchingTab then
-			firstMatchingTab = idx
-		end
-	end
-
-	-- Auto-switch to a tab that has matches (so results are shown right away)
-	if not sEmpty and firstMatchingTab and self._TabModule then
-		local cur = self._TabModule.Tabs[activeIndex]
-		local currentHasMatch = cur and cur.Frame and cur.Frame.Visible
-		if not currentHasMatch then
-			self._TabModule:SelectTab(firstMatchingTab)
-		end
-	end
-
-end
-
-function Library:_ApplyHeaderSearch(query)
-	query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
-	self._HeaderQuery = query
-	local activeIndex = self._TabModule and self._TabModule.SelectedTab or 0
-	if activeIndex == 0 then return end
-	local Tab = self._Tabs[activeIndex]
-	if Tab then
-		_applyTabVisibility(Tab, self._SidebarQuery, query, true)
-	end
-end
-
--- Called when TabModule:SelectTab switches tab — re-apply per-tab (header)
--- filter to the newly-selected tab so filters stay consistent.
-function Library:_OnTabChanged(newIndex)
-	local newTab = self._Tabs[newIndex]
-	if not newTab then return end
-	-- If neither search box has text, nothing to refilter.
-	if self._SidebarQuery == "" and self._HeaderQuery == "" then
-		self._PrevActiveTabIdx = newIndex
-		return
-	end
-	-- Only refilter the previously-active tab (to strip header filter from
-	-- it) and the new active tab (to apply header filter). O(2) not O(N).
-	local prevIdx = self._PrevActiveTabIdx
-	if prevIdx and prevIdx ~= newIndex then
-		local prevTab = self._Tabs[prevIdx]
-		if prevTab then
-			_applyTabVisibility(prevTab, self._SidebarQuery, self._HeaderQuery, false)
-		end
-	end
-	_applyTabVisibility(newTab, self._SidebarQuery, self._HeaderQuery, true)
-	self._PrevActiveTabIdx = newIndex
-end
-
-function Library:_RegisterTab(Tab)
-	Tab._sections = Tab._sections or {}
-	Tab._elements = Tab._elements or {}
-	table.insert(self._Tabs, Tab)
-end
-
-function Library:_RegisterElement(context, rec)
-	if context.Type == "Section" then
-		rec.Section = context
-		rec.Tab = context.Tab
-		rec._directOnTab = false
-		table.insert(context._elements, rec)
-		if context.Tab and context.Tab._elements then
-			table.insert(context.Tab._elements, rec)
-		end
-	else
-		rec.Tab = context
-		rec._directOnTab = true
-		if context._elements then
-			table.insert(context._elements, rec)
-		end
-	end
-end
 
 local function isMotor(value)
 	local motorType = tostring(value):match("^Motor%((.+)%)$")
@@ -2200,79 +2016,47 @@ end
 Components.Section = function(Title, Parent)
 	local Section = {}
 
-	-- Chip-style header: small accent bar + bold title, no line divider.
-	local HEADER_TOP     = 10   -- gap above header row
-	local HEADER_H       = 22   -- header row height
-	local HEADER_TO_BODY = 10   -- gap between header row and first element
-	local BODY_BOTTOM    = 8    -- gap below last element in this section
-
-	local HEADER_AREA    = HEADER_TOP + HEADER_H + HEADER_TO_BODY
-
 	Section.Layout = New("UIListLayout", {
-		Padding = UDim.new(0, 6),
-		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 5),
 	})
 
-	-- Container auto-fits its children so wrapped Thai descriptions never
-	-- get clipped, and the next section can't overlap it.
 	Section.Container = New("Frame", {
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		Position = UDim2.fromOffset(0, HEADER_AREA),
+		Size = UDim2.new(1, 0, 0, 26),
+		Position = UDim2.fromOffset(0, 24),
 		BackgroundTransparency = 1,
 	}, {
 		Section.Layout,
-		New("UIPadding", { PaddingBottom = UDim.new(0, BODY_BOTTOM) }),
 	})
 
-	-- Small accent "bar" chip on the left of the title
-	Section.HeaderAccent = New("Frame", {
-		Size = UDim2.fromOffset(3, 16),
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 4, 0, HEADER_TOP + HEADER_H / 2),
-		BackgroundTransparency = 0,
-		BorderSizePixel = 0,
-		ThemeTag = {
-			BackgroundColor3 = "Accent",
-		},
-	}, {
-		New("UICorner", { CornerRadius = UDim.new(0, 2) }),
-	})
-
-	Section.HeaderLabel = New("TextLabel", {
-		RichText = true,
-		Text = Title,
-		TextTransparency = 0,
-		FontFace = Font.new(
-			"rbxasset://fonts/families/GothamSSm.json",
-			Enum.FontWeight.Bold,
-			Enum.FontStyle.Normal
-		),
-		TextSize = 15,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Center,
-		Size = UDim2.new(1, -24, 0, HEADER_H),
-		Position = UDim2.fromOffset(14, HEADER_TOP),
-		BackgroundTransparency = 1,
-		AutoLocalize = false,
-		ThemeTag = {
-			TextColor3 = "Text",
-		},
-	})
-
-	-- Root auto-fits too — no manual math needed.
 	Section.Root = New("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, HEADER_AREA),
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Size = UDim2.new(1, 0, 0, 26),
 		LayoutOrder = 7,
 		Parent = Parent,
 	}, {
-		Section.HeaderAccent,
-		Section.HeaderLabel,
+		New("TextLabel", {
+			RichText = true,
+			Text = Title,
+			TextTransparency = 0,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextSize = 22,
+			TextXAlignment = "Left",
+			TextYAlignment = "Center",
+			Size = UDim2.new(1, -16, 0, 18),
+			Position = UDim2.fromOffset(0, 2),
+			AutoLocalize = false,
+			ThemeTag = {
+				TextColor3 = "Text",
+			},
+		}),
 		Section.Container,
 	})
 
+	Creator.AddSignal(Section.Layout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+		Section.Container.Size = UDim2.new(1, 0, 0, Section.Layout.AbsoluteContentSize.Y)
+		Section.Root.Size = UDim2.new(1, 0, 0, Section.Layout.AbsoluteContentSize.Y + 25)
+	end)
+	
 	return Section
 end
 Components.Tab = (function()
@@ -2309,58 +2093,61 @@ Components.Tab = (function()
 			Selected = false,
 			Name     = Title,
 			Type     = "Tab",
-			Icon     = nil,   -- populated below after resolution
-			_sections = {},
-			_elements = {},
 		}
 
-		-- Accept either a lucide short name ("swords"), a full asset id
-		-- ("rbxassetid://..."), or an empty/nil. Anything else that isn't a
-		-- known icon becomes nil so the tab doesn't render a broken image.
-		local resolved = Library:GetIcon(Icon)
-		if resolved then
-			Icon = resolved
-		elseif type(Icon) == "string" and Icon:sub(1, 4) == "rbxa" then
-			-- keep as-is (raw asset id)
-		else
+		if Library:GetIcon(Icon) then
+			Icon = Library:GetIcon(Icon)
+		end
+		if Icon == "" or Icon == nil then
 			Icon = nil
 		end
-		Tab.Icon = Icon
 
-		-- ── Solid pill background (fades in when selected) ────
+		-- ── Pill background (hidden when unselected) ──────────
 		local PillBg = New("Frame", {
 			Size             = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			ThemeTag         = { BackgroundColor3 = "Accent" },
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 10) }),
+			New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		})
+
+		-- ── Left accent bar ───────────────────────────────────
+		local AccentBar = New("Frame", {
+			Size             = UDim2.new(0, 3, 0, 0),   -- height animated
+			AnchorPoint      = Vector2.new(0, 0.5),
+			Position         = UDim2.new(0, 0, 0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(96, 205, 255),
+			BackgroundTransparency = 1,
+			ThemeTag         = { BackgroundColor3 = "Accent" },
+		}, {
+			New("UICorner", { CornerRadius = UDim.new(0, 2) }),
 		})
 
 		-- ── Icon ──────────────────────────────────────────────
 		local IconLabel = New("ImageLabel", {
 			AnchorPoint      = Vector2.new(0, 0.5),
 			Size             = UDim2.fromOffset(16, 16),
-			Position         = UDim2.new(0, 12, 0.5, 0),
+			Position         = UDim2.new(0, 8, 0.5, 0),
 			BackgroundTransparency = 1,
 			Image            = Icon or "",
-			ImageTransparency = 0.4,
+			ImageTransparency = 0.35,
 			ThemeTag         = { ImageColor3 = "Text" },
 		})
 
 		-- ── Title label ───────────────────────────────────────
 		local TitleLabel = New("TextLabel", {
 			AnchorPoint      = Vector2.new(0, 0.5),
-			Position         = Icon and UDim2.new(0, 36, 0.5, 0) or UDim2.new(0, 14, 0.5, 0),
+			Position         = Icon and UDim2.new(0, 30, 0.5, 0) or UDim2.new(0, 12, 0.5, 0),
 			Text             = Title,
 			RichText         = true,
-			TextTransparency = 0.4,
+			TextTransparency = 0.35,
 			FontFace         = Font.new(
 				"rbxasset://fonts/families/GothamSSm.json",
-				Enum.FontWeight.Medium,
+				Enum.FontWeight.Regular,
 				Enum.FontStyle.Normal
 			),
-			TextSize         = 13,
+			TextSize         = 12,
 			TextXAlignment   = Enum.TextXAlignment.Left,
 			TextYAlignment   = Enum.TextYAlignment.Center,
 			Size             = UDim2.new(1, -12, 1, 0),
@@ -2371,20 +2158,21 @@ Components.Tab = (function()
 
 		-- ── Tab frame ─────────────────────────────────────────
 		Tab.Frame = New("TextButton", {
-			Size             = UDim2.new(1, 0, 0, 36),
+			Size             = UDim2.new(1, 0, 0, 34),
 			BackgroundTransparency = 1,
 			Parent           = Parent,
 			ThemeTag         = { BackgroundColor3 = "Tab" },
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 10) }),
+			New("UICorner", { CornerRadius = UDim.new(0, 8) }),
 			PillBg,
+			AccentBar,
 			IconLabel,
 			TitleLabel,
 		})
 
-		-- ── Container scroll frame ────────────────────────────
+		-- ── Container scroll frame (unchanged) ───────────────
 		local ContainerLayout = New("UIListLayout", {
-			Padding      = UDim.new(0, 8),   -- was 5; more air between sections
+			Padding      = UDim.new(0, 5),
 			SortOrder    = Enum.SortOrder.LayoutOrder,
 		})
 
@@ -2404,12 +2192,11 @@ Components.Tab = (function()
 			ScrollingDirection     = Enum.ScrollingDirection.Y,
 		}, {
 			ContainerLayout,
-			-- Inner padding so elements have room to breathe on all sides
 			New("UIPadding", {
-				PaddingRight  = UDim.new(0, 14),
-				PaddingLeft   = UDim.new(0, 6),
-				PaddingTop    = UDim.new(0, 4),
-				PaddingBottom = UDim.new(0, 8),
+				PaddingRight  = UDim.new(0, 10),
+				PaddingLeft   = UDim.new(0, 1),
+				PaddingTop    = UDim.new(0, 1),
+				PaddingBottom = UDim.new(0, 1),
 			}),
 		})
 
@@ -2423,32 +2210,37 @@ Components.Tab = (function()
 		local TI_BACK = TweenInfo.new(0.25, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
 
 		-- ── State appliers ────────────────────────────────────
-		-- Selected: soft accent tint (readable, not eye-searing)
-		-- Inactive: transparent bg, muted text/icon
-		local SELECTED_ALPHA = 0.78   -- soft accent wash
-		local HOVER_ALPHA    = 0.9
-		local PRESS_ALPHA    = 0.65
-
 		local function applySelected()
+			-- pill fades in
 			TweenService:Create(PillBg, TI_NORM, {
-				BackgroundTransparency = SELECTED_ALPHA,
+				BackgroundTransparency = 0.88,
 			}):Play()
-			TweenService:Create(TitleLabel, TI_NORM, { TextTransparency  = 0 }):Play()
-			TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0 }):Play()
+			-- accent bar grows
+			TweenService:Create(AccentBar, TI_BACK, {
+				Size                   = UDim2.new(0, 3, 0.55, 0),
+				BackgroundTransparency = 0,
+			}):Play()
+			-- text & icon become fully opaque
+			TweenService:Create(TitleLabel, TI_NORM, { TextTransparency  = 0    }):Play()
+			TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0    }):Play()
 		end
 
 		local function applyUnselected()
 			TweenService:Create(PillBg, TI_NORM, {
 				BackgroundTransparency = 1,
 			}):Play()
-			TweenService:Create(TitleLabel, TI_NORM, { TextTransparency  = 0.4 }):Play()
-			TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0.4 }):Play()
+			TweenService:Create(AccentBar, TI_NORM, {
+				Size                   = UDim2.new(0, 3, 0, 0),
+				BackgroundTransparency = 1,
+			}):Play()
+			TweenService:Create(TitleLabel, TI_NORM, { TextTransparency  = 0.35 }):Play()
+			TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0.35 }):Play()
 		end
 
 		-- ── Hover (only when not selected) ───────────────────
 		Creator.AddSignal(Tab.Frame.MouseEnter, function()
 			if not Tab.Selected then
-				TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = HOVER_ALPHA }):Play()
+				TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = 0.94 }):Play()
 				TweenService:Create(TitleLabel, TI_NORM, { TextTransparency = 0.15 }):Play()
 				TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0.15 }):Play()
 			end
@@ -2456,16 +2248,15 @@ Components.Tab = (function()
 		Creator.AddSignal(Tab.Frame.MouseLeave, function()
 			if not Tab.Selected then
 				TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = 1 }):Play()
-				TweenService:Create(TitleLabel, TI_NORM, { TextTransparency = 0.4 }):Play()
-				TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0.4 }):Play()
+				TweenService:Create(TitleLabel, TI_NORM, { TextTransparency = 0.35 }):Play()
+				TweenService:Create(IconLabel,  TI_NORM, { ImageTransparency = 0.35 }):Play()
 			end
 		end)
 		Creator.AddSignal(Tab.Frame.MouseButton1Down, function()
-			local t = Tab.Selected and (SELECTED_ALPHA - 0.1) or PRESS_ALPHA
-			TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = t }):Play()
+			TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = 0.82 }):Play()
 		end)
 		Creator.AddSignal(Tab.Frame.MouseButton1Up, function()
-			local t = Tab.Selected and SELECTED_ALPHA or HOVER_ALPHA
+			local t = Tab.Selected and 0.88 or 0.94
 			TweenService:Create(PillBg, TI_NORM, { BackgroundTransparency = t }):Play()
 		end)
 
@@ -2493,18 +2284,11 @@ Components.Tab = (function()
 			local SectionFrame  = Components.Section(SectionTitle, Tab.Container)
 			Section.Container   = SectionFrame.Container
 			Section.ScrollFrame = Tab.Container
-			Section.Root        = SectionFrame.Root
-			Section.HeaderLabel = SectionFrame.HeaderLabel
-			Section.SectionTitle = SectionTitle
-			Section.Tab         = Tab
-			Section._elements   = {}
-			table.insert(Tab._sections, Section)
 			setmetatable(Section, Elements)
 			return Section
 		end
 
 		setmetatable(Tab, Elements)
-		Library:_RegisterTab(Tab)
 		return Tab
 	end
 
@@ -2536,16 +2320,8 @@ Components.Tab = (function()
 			target.SetTransparency(0.89)
 		end
 
-		-- update header text + icon + selector bar (existing window logic)
+		-- update header text + selector bar (existing window logic)
 		Window.TabDisplay.Text = target.Name
-		if Window.TabDisplayIcon then
-			if target.Icon then
-				Window.TabDisplayIcon.Image = target.Icon
-				Window.TabDisplayIcon.Visible = true
-			else
-				Window.TabDisplayIcon.Visible = false
-			end
-		end
 		Window.SelectorPosMotor:setGoal(
 			Flipper.Spring.new(TabModule:GetCurrentTabPos(), { frequency = 6 })
 		)
@@ -3373,18 +3149,19 @@ Components.Window = (function()
 		--Window.AcrylicPaint = Acrylic.AcrylicPaint()
 		Window.TabWidth = Config.TabWidth
 
-		-- Left accent selector bar is disabled — selection is indicated by
-		-- the tab pill background alone. Keep the frame + motor references
-		-- alive so existing motor code doesn't blow up, just render invisible.
 		local Selector = New("Frame", {
 			Size = UDim2.fromOffset(4, 0),
 			BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(0, 17),
 			AnchorPoint = Vector2.new(0, 0.5),
-			Visible = false,
+			ThemeTag = {
+				BackgroundColor3 = "Accent",
+			},
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(0, 2),
+			}),
 		})
-		Window.Selector = Selector
 
 		local OFFSETY = 120
 
@@ -3434,62 +3211,9 @@ Components.Window = (function()
 
 		local OFFSETY = 0  -- tab list เริ่มใต้ titlebar ทันที
 
-		-- ── Sidebar search bar ────────────────────────────────
-		local SEARCH_H = 34
-
-		local SidebarSearchIcon = New("ImageLabel", {
-			Image = "rbxassetid://10734943674",
-			Size = UDim2.fromOffset(14, 14),
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, 10, 0.5, 0),
-			BackgroundTransparency = 1,
-			ThemeTag = { ImageColor3 = "SubText" },
-		})
-
-		local SidebarSearchBox = New("TextBox", {
-			FontFace = Font.new(
-				"rbxasset://fonts/families/GothamSSm.json",
-				Enum.FontWeight.Regular,
-				Enum.FontStyle.Normal
-			),
-			Text = "",
-			PlaceholderText = "Search...",
-			PlaceholderColor3 = Color3.fromRGB(150, 150, 150),
-			TextColor3 = Color3.fromRGB(240, 240, 240),
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			Size = UDim2.new(1, -38, 1, 0),
-			Position = UDim2.new(0, 30, 0, 0),
-			BackgroundTransparency = 1,
-			ClearTextOnFocus = false,
-			AutoLocalize = false,
-			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
-		})
-
-		local SidebarSearchStroke = New("UIStroke", {
-			Transparency = 0.6,
-			Thickness = 1,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			ThemeTag = { Color = "ElementBorder" },
-		})
-
-		local SidebarSearchFrame = New("Frame", {
-			Size = UDim2.new(1, 0, 0, SEARCH_H),
-			Position = UDim2.new(0, 0, 0, 0),
-			BackgroundTransparency = 0.9,
-			ThemeTag = { BackgroundColor3 = "DropdownFrame" },
-		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 8) }),
-			SidebarSearchStroke,
-			SidebarSearchIcon,
-			SidebarSearchBox,
-		})
-
-		local TabListFrame = New("Frame", {
-			Size = UDim2.new(1, 0, 1, -(SEARCH_H + 8)),
-			Position = UDim2.new(0, 0, 0, SEARCH_H + 8),
+		local TabFrame = New("Frame", {
+			Size             = UDim2.new(0, Window.TabWidth, 1, -66),
+			Position         = UDim2.new(0, 12, 0, 54),
 			BackgroundTransparency = 1,
 			ClipsDescendants = true,
 		}, {
@@ -3497,103 +3221,20 @@ Components.Window = (function()
 			Selector,
 		})
 
-		local TabFrame = New("Frame", {
-			Size             = UDim2.new(0, Window.TabWidth, 1, -66),
-			Position         = UDim2.new(0, 12, 0, 54),
-			BackgroundTransparency = 1,
-			ClipsDescendants = false,
-		}, {
-			SidebarSearchFrame,
-			TabListFrame,
-		})
-
-		-- Current-tab header row: accent-tinted icon + bold title
-		Window.TabDisplayIcon = New("ImageLabel", {
-			Image            = "",
-			Size             = UDim2.fromOffset(24, 24),
-			BackgroundTransparency = 1,
-			Visible          = false,
-			LayoutOrder      = 1,
-			ThemeTag         = { ImageColor3 = "Accent" },
-		})
-
 		Window.TabDisplay = New("TextLabel", {
 			RichText         = true,
 			Text             = "Tab",
 			TextTransparency = 0,
-			FontFace         = Font.new(
-				"rbxasset://fonts/families/GothamSSm.json",
-				Enum.FontWeight.Bold,
-				Enum.FontStyle.Normal
-			),
-			TextSize         = 26,
+			FontFace         = Font.new("rbxassetid://12187365364",
+			                   Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextSize         = 22,
 			TextXAlignment   = Enum.TextXAlignment.Left,
 			TextYAlignment   = Enum.TextYAlignment.Center,
-			Size             = UDim2.new(0, 0, 0, 28),
-			AutomaticSize    = Enum.AutomaticSize.X,
+			Size             = UDim2.new(1, -16, 0, 22),
+			Position         = UDim2.fromOffset(Window.TabWidth + 26, 56),
 			BackgroundTransparency = 1,
 			AutoLocalize     = false,
-			LayoutOrder      = 2,
 			ThemeTag         = { TextColor3 = "Text" },
-		})
-
-		Window.TabDisplayRow = New("Frame", {
-			Size             = UDim2.new(1, -Window.TabWidth - 38, 0, 32),
-			Position         = UDim2.fromOffset(Window.TabWidth + 26, 48),
-			BackgroundTransparency = 1,
-		}, {
-			New("UIListLayout", {
-				FillDirection      = Enum.FillDirection.Horizontal,
-				VerticalAlignment  = Enum.VerticalAlignment.Center,
-				SortOrder          = Enum.SortOrder.LayoutOrder,
-				Padding            = UDim.new(0, 10),
-			}),
-			Window.TabDisplayIcon,
-			Window.TabDisplay,
-		})
-
-		-- ── Header search box (top-right of content area) ──────
-		local HeaderSearchIcon = New("ImageLabel", {
-			Image = "rbxassetid://10734943674",
-			Size = UDim2.fromOffset(14, 14),
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, 10, 0.5, 0),
-			BackgroundTransparency = 1,
-			ThemeTag = { ImageColor3 = "SubText" },
-		})
-
-		Window.HeaderSearchBox = New("TextBox", {
-			FontFace = Font.new(
-				"rbxasset://fonts/families/GothamSSm.json",
-				Enum.FontWeight.Regular,
-				Enum.FontStyle.Normal
-			),
-			Text = "",
-			PlaceholderText = "Search",
-			PlaceholderColor3 = Color3.fromRGB(150, 150, 150),
-			TextColor3 = Color3.fromRGB(240, 240, 240),
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			Size = UDim2.new(1, -38, 1, 0),
-			Position = UDim2.new(0, 30, 0, 0),
-			BackgroundTransparency = 1,
-			ClearTextOnFocus = false,
-			AutoLocalize = false,
-			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
-		})
-
-		-- Header (right-side) search box is hidden — sidebar search covers
-		-- all filtering. Keep the reference alive so existing wiring doesn't
-		-- error out; just render as an invisible frame with no interactive
-		-- children reachable to the user.
-		Window.HeaderSearchFrame = New("Frame", {
-			Size = UDim2.new(0, 0, 0, 0),
-			BackgroundTransparency = 1,
-			Visible = false,
-		}, {
-			Window.HeaderSearchBox,
 		})
 
 		Window.ContainerHolder = New("Frame", {
@@ -3607,8 +3248,8 @@ Components.Window = (function()
 		})
 
 		Window.ContainerCanvas = New("Frame", {
-			Size             = UDim2.new(1, -Window.TabWidth - 32, 1, -98),
-			Position         = UDim2.fromOffset(Window.TabWidth + 26, 86),
+			Size             = UDim2.new(1, -Window.TabWidth - 32, 1, -102),
+			Position         = UDim2.fromOffset(Window.TabWidth + 26, 90),
 			BackgroundTransparency = 1,
 		}, {
 			Window.ContainerAnim,
@@ -3629,50 +3270,18 @@ Components.Window = (function()
 		    SetVisibility = function() end,
 		}
 		
-		Window.UIScale = New("UIScale", { Scale = 1 })
-
 		Window.Root = New("Frame", {
 		    BackgroundTransparency = 1,
 		    Size = Window.Size,
 		    Position = Window.Position,
 		    Parent = Config.Parent,
 		}, {
-		    Window.UIScale,
 		    AcrylicFrame,   -- ใช้ตัวแปร แทน Window.AcrylicPaint.Frame
-		    Window.TabDisplayRow,
-		    Window.HeaderSearchFrame,
+		    Window.TabDisplay,
 		    Window.ContainerCanvas,
 		    TabFrame,
 		    ResizeStartFrame,
 		})
-
-		-- ── Auto-scale for smaller screens (mobile) ────────────
-		local function fitScale()
-			if not Window.Root.Parent then return end
-			local vp = Camera.ViewportSize
-			local baseX = Window.Size.X.Offset
-			local baseY = Window.Size.Y.Offset
-			if baseX <= 0 or baseY <= 0 then return end
-			local sx = (vp.X - 24) / baseX
-			local sy = (vp.Y - 60) / baseY
-			local s = math.min(1, math.min(sx, sy))
-			Window.UIScale.Scale = math.max(0.5, s)
-		end
-		fitScale()
-		Creator.AddSignal(Camera:GetPropertyChangedSignal("ViewportSize"), fitScale)
-
-		-- ── Wire up search boxes to separate filter scopes ──────
-		-- Left  = global (across all tabs, auto-switches to a matching tab)
-		-- Right = current tab only
-		Library._SearchSidebar = SidebarSearchBox
-		Library._SearchHeader = Window.HeaderSearchBox
-
-		Creator.AddSignal(SidebarSearchBox:GetPropertyChangedSignal("Text"), function()
-			Library:_ApplySidebarSearch(SidebarSearchBox.Text)
-		end)
-		Creator.AddSignal(Window.HeaderSearchBox:GetPropertyChangedSignal("Text"), function()
-			Library:_ApplyHeaderSearch(Window.HeaderSearchBox.Text)
-		end)
 
 		Window.TitleBar = Components.TitleBar({
 			Title = Config.Title,
@@ -3931,13 +3540,6 @@ Components.Window = (function()
 		end
 
 		local TabModule = Components.Tab:Init(Window)
-		Library._TabModule = TabModule
-		-- wrap SelectTab so we re-apply header (per-tab) search on switch
-		local _origSelectTab = TabModule.SelectTab
-		function TabModule:SelectTab(idx)
-			_origSelectTab(TabModule, idx)
-			Library:_OnTabChanged(idx)
-		end
 		function Window:AddTab(TabConfig)
 			return TabModule:New(TabConfig.Title, TabConfig.Icon, Window.TabHolder)
 		end
@@ -3978,7 +3580,7 @@ ElementsTable.Button = (function()
 		local ButtonFrame = Components.Element(Config.Title, Config.Description, self.Container, true, Config)
 
 		local ButtonIco = New("ImageLabel", {
-			Image = "rbxassetid://10709791437", -- lucide-chevron-right (minimal ">")
+			Image = "rbxassetid://10734898476",
 			Size = UDim2.fromOffset(16, 16),
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -10, 0.5, 0),
@@ -3989,77 +3591,7 @@ ElementsTable.Button = (function()
 			},
 		})
 
-		-- Ripple overlay (short accent flash on click)
-		local ButtonRipple = New("Frame", {
-			Size = UDim2.fromScale(1, 1),
-			BackgroundTransparency = 1,
-			Parent = ButtonFrame.Frame,
-			ZIndex = 2,
-			ThemeTag = { BackgroundColor3 = "Accent" },
-		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 4) }),
-		})
-
-		-- Scale wrapper so the whole button can bounce without breaking
-		-- the AutomaticSize.Y layout
-		local ButtonScale = New("UIScale", {
-			Scale = 1,
-			Parent = ButtonFrame.Frame,
-		})
-
-		local TI_ICO_DOWN = TweenInfo.new(0.10, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local TI_ICO_UP   = TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out, 0, false, 0.10)
-
-		-- Press/release scale — physical "click" feedback on the whole frame
-		local TI_SCALE_DOWN = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local TI_SCALE_UP   = TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-		local isPressed = false
-		local function releaseScale()
-			if isPressed then
-				isPressed = false
-				TweenService:Create(ButtonScale, TI_SCALE_UP, { Scale = 1 }):Play()
-			end
-		end
-
-		Creator.AddSignal(ButtonFrame.Frame.MouseButton1Down, function()
-			isPressed = true
-			TweenService:Create(ButtonScale, TI_SCALE_DOWN, { Scale = 0.96 }):Play()
-		end)
-		Creator.AddSignal(ButtonFrame.Frame.MouseButton1Up, releaseScale)
-		-- Also release if the cursor leaves the button while still held down
-		-- (otherwise the button stays visually shrunk after the mouse exits).
-		Creator.AddSignal(ButtonFrame.Frame.MouseLeave, releaseScale)
-		-- Belt-and-braces: catch a mouse-up that happens anywhere on screen
-		Creator.AddSignal(UserInputService.InputEnded, function(Input)
-			if isPressed and (
-				Input.UserInputType == Enum.UserInputType.MouseButton1
-				or Input.UserInputType == Enum.UserInputType.Touch
-			) then
-				releaseScale()
-			end
-		end)
-
 		Creator.AddSignal(ButtonFrame.Frame.MouseButton1Click, function()
-			-- icon shrink → overshoot back
-			TweenService:Create(ButtonIco, TI_ICO_DOWN, {
-				Size = UDim2.fromOffset(12, 12),
-			}):Play()
-			TweenService:Create(ButtonIco, TI_ICO_UP, {
-				Size = UDim2.fromOffset(16, 16),
-			}):Play()
-
-			-- accent ripple flash
-			ButtonRipple.BackgroundTransparency = 0.82
-			TweenService:Create(ButtonRipple,
-				TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-				{ BackgroundTransparency = 1 }
-			):Play()
-
-			-- extra bounce on click (fires after Up in case Up didn't fire)
-			ButtonScale.Scale = 0.94
-			TweenService:Create(ButtonScale, TI_SCALE_UP, { Scale = 1 }):Play()
-
 			Library:SafeCallback(Config.Callback)
 		end)
 		return ButtonFrame
@@ -4093,77 +3625,72 @@ ElementsTable.Toggle = (function()
 		Toggle.GetOriginalText = ToggleFrame.GetOriginalText
 		Toggle.Elements        = ToggleFrame
 
-		-- ── Checkbox ──────────────────────────────────────────
-		local Box = New("Frame", {
-			Size             = UDim2.fromOffset(22, 22),
+		-- ── Track (pill) ──────────────────────────────────────
+		local Track = New("Frame", {
+			Size             = UDim2.fromOffset(44, 24),
 			AnchorPoint      = Vector2.new(1, 0.5),
-			Position         = UDim2.new(1, -12, 0.5, 0),
+			Position         = UDim2.new(1, -10, 0.5, 0),
 			BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-			BackgroundTransparency = 0.25,
 			Parent           = ToggleFrame.Frame,
 			ThemeTag         = { BackgroundColor3 = "Element" },
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 			New("UIStroke", {
-				Transparency    = 0.35,
-				Thickness       = 1.2,
+				Transparency    = 0.6,
+				Thickness       = 1,
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 				ThemeTag        = { Color = "InElementBorder" },
 			}),
 		})
 
-		-- Accent fill overlay — grows in from center on ON
+		-- ── Accent fill (clipped inside track) ───────────────
 		local Fill = New("Frame", {
-			Size             = UDim2.fromScale(0, 0),
-			AnchorPoint      = Vector2.new(0.5, 0.5),
-			Position         = UDim2.fromScale(0.5, 0.5),
+			Size             = UDim2.new(0, 0, 1, 0),   -- starts empty
 			BackgroundColor3 = Color3.fromRGB(96, 205, 255),
-			BackgroundTransparency = 0,
 			ThemeTag         = { BackgroundColor3 = "Accent" },
-			Parent           = Box,
+			Parent           = Track,
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 		})
 
-		-- Check mark — pixel-perfect centered image (Unicode wasn't reliable)
-		local Check = New("ImageLabel", {
-			Image            = "rbxassetid://10709790644", -- lucide-check
+		-- ── Thumb ─────────────────────────────────────────────
+		local Thumb = New("Frame", {
 			Size             = UDim2.fromOffset(16, 16),
-			AnchorPoint      = Vector2.new(0.5, 0.5),
-			Position         = UDim2.fromScale(0.5, 0.5),
-			BackgroundTransparency = 1,
-			ImageTransparency = 1,
-			ImageColor3      = Color3.fromRGB(255, 255, 255),
+			AnchorPoint      = Vector2.new(0, 0.5),
+			Position         = UDim2.new(0, 3, 0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			ZIndex           = 3,
-			Parent           = Box,
+			Parent           = Track,
+		}, {
+			New("UICorner", { CornerRadius = UDim.new(1, 0) }),
 		})
 
 		-- ── Easing helpers ────────────────────────────────────
-		local TI_FAST  = TweenInfo.new(0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-		local TI_BACK  = TweenInfo.new(0.24, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
+		local TI_FAST  = TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+		local TI_BACK  = TweenInfo.new(0.20, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
 		local TI_QUICK = TweenInfo.new(0.10, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-		-- OFF state — fill collapses, check fades out
+		-- OFF state
 		local function applyOff()
-			TweenService:Create(Fill,  TI_FAST, { Size = UDim2.fromScale(0, 0) }):Play()
-			TweenService:Create(Check, TI_FAST, { ImageTransparency = 1 }):Play()
+			TweenService:Create(Fill,  TI_FAST, { Size     = UDim2.new(0, 0, 1, 0)   }):Play()
+			TweenService:Create(Thumb, TI_BACK, { Position = UDim2.new(0, 3, 0.5, 0) }):Play()
 		end
 
-		-- ON state — fill scales up with a bounce, check fades in
+		-- ON state
 		local function applyOn()
-			TweenService:Create(Fill,  TI_BACK, { Size = UDim2.fromScale(1, 1) }):Play()
-			TweenService:Create(Check, TI_FAST, { ImageTransparency = 0 }):Play()
+			TweenService:Create(Fill,  TI_FAST, { Size     = UDim2.fromScale(1, 1)    }):Play()
+			TweenService:Create(Thumb, TI_BACK, { Position = UDim2.new(0, 23, 0.5, 0)}):Play()
 		end
 
-		-- Press squish on the box
+		-- Press squish
 		Creator.AddSignal(ToggleFrame.Frame.MouseButton1Down, function()
-			TweenService:Create(Box, TI_QUICK, {
-				Size = UDim2.fromOffset(19, 19),
+			TweenService:Create(Thumb, TI_QUICK, {
+				Size = UDim2.fromOffset(Toggle.Value and 14 or 18, 16),
 			}):Play()
 		end)
 		Creator.AddSignal(ToggleFrame.Frame.MouseButton1Up, function()
-			TweenService:Create(Box, TI_BACK, {
-				Size = UDim2.fromOffset(22, 22),
+			TweenService:Create(Thumb, TI_BACK, {
+				Size = UDim2.fromOffset(16, 16),
 			}):Play()
 		end)
 
@@ -4220,9 +3747,6 @@ ElementsTable.Dropdown = (function()
 			Type = "Dropdown",
 			Callback = Config.Callback or function() end,
 			Searchable = Config.Searchable or false,
-			-- Multi selection order (array of values in the order the user
-			-- picked them). Value stays a dict for backwards compatibility.
-			Order = {},
 			-- Lazy loading properties
 			LoadedItems = 0,
 			BatchSize = 20, -- จำนวน items ที่โหลดต่อครั้ง
@@ -4282,28 +3806,16 @@ ElementsTable.Dropdown = (function()
 			ThemeTag        = { BackgroundColor3 = "InElementBorder" },
 		})
 
-		local DropdownStroke = New("UIStroke", {
-			Transparency    = 0.35,
-			Thickness       = 1,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			ThemeTag        = { Color = "DropdownBorder" },
-		})
-
-		-- ClearButton is created LATER as a child of the popup (DropdownHolderFrame)
-		-- so it's visible together with the option list.
-		local ClearButton = nil
-
 		local DropdownInner = New("TextButton", {
 			Size            = UDim2.fromOffset(160, 28),
 			Position        = UDim2.new(1, -10, 0.5, 0),
 			AnchorPoint     = Vector2.new(1, 0.5),
-			BackgroundTransparency = 0.55,
+			BackgroundTransparency = 0.9,
 			Parent          = DropdownFrame.Frame,
 			AutoLocalize    = false,
 			ThemeTag        = { BackgroundColor3 = "DropdownFrame" },
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 8) }),
-			DropdownStroke,
+			New("UICorner", { CornerRadius = UDim.new(0, 10) }),
 			DropdownIco,
 			DropdownDisplay,
 		})
@@ -4328,43 +3840,50 @@ ElementsTable.Dropdown = (function()
 			SetDropdownHover(0.9)
 		end)
 
-		-- Inline hover + click for the clear-all X button
+		-- เพิ่ม hover effect สำหรับ clear button
 		if ClearButton then
-			local TI_CLR = TweenInfo.new(0.14, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+			local ClearHoverMotor, SetClearHover = Creator.SpringMotor(0.15, ClearButton, "BackgroundTransparency")
 			Creator.AddSignal(ClearButton.MouseEnter, function()
-				TweenService:Create(ClearButton, TI_CLR, {
-					Size = UDim2.fromOffset(18, 18),
+				SetClearHover(0.05)
+				-- เพิ่ม scale effect
+				TweenService:Create(ClearButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(32, 32)
 				}):Play()
 			end)
 			Creator.AddSignal(ClearButton.MouseLeave, function()
-				TweenService:Create(ClearButton, TI_CLR, {
-					Size = UDim2.fromOffset(16, 16),
+				SetClearHover(0.15)
+				-- คืนขนาดเดิม
+				TweenService:Create(ClearButton, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(30, 30)
 				}):Play()
 			end)
 			Creator.AddSignal(ClearButton.MouseButton1Down, function()
-				TweenService:Create(ClearButton,
-					TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ Size = UDim2.fromOffset(14, 14) }
-				):Play()
+				SetClearHover(0.0)
+				-- เพิ่ม press effect
+				TweenService:Create(ClearButton, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(28, 28)
+				}):Play()
 			end)
 			Creator.AddSignal(ClearButton.MouseButton1Up, function()
-				TweenService:Create(ClearButton,
-					TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-					{ Size = UDim2.fromOffset(18, 18) }
-				):Play()
+				SetClearHover(0.05)
+				TweenService:Create(ClearButton, TweenInfo.new(0.1, Enum.EasingStyle.Quart), {
+					Size = UDim2.fromOffset(32, 32)
+				}):Play()
 			end)
 
-			-- Clear-all: wipe selections, refresh buttons, update display, fire callback
+			-- ฟังก์ชันล้างค่าทั้งหมด
 			Creator.AddSignal(ClearButton.MouseButton1Click, function()
-				if not Dropdown.Multi then return end
-				Dropdown.Value = {}
-				table.clear(Dropdown.Order)
-				for _, Btn in next, Dropdown.Buttons do
-					if Btn.UpdateButton then Btn:UpdateButton() end
+				if Dropdown.Multi then
+					Dropdown.Value = {}
+					for _, Button in next, Dropdown.Buttons do
+						Button:UpdateButton()
+					end
+					Dropdown:Display()
+					-- ปิด dropdown หลังล้างค่า
+					Dropdown:Close()
+					Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+					Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
 				end
-				Dropdown:Display()
-				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
 			end)
 		end
 
@@ -4373,8 +3892,8 @@ ElementsTable.Dropdown = (function()
 		})
 
 		local DropdownScrollFrame = New("ScrollingFrame", {
-			Size = UDim2.new(1, -8, 1, -12),
-			Position = UDim2.fromOffset(6, 6),
+			Size = UDim2.new(1, -8, 1, -12), -- ปรับขนาด
+			Position = UDim2.fromOffset(6, 6), -- ปรับตำแหน่ง
 			BackgroundTransparency = 1,
 			BottomImage = "rbxassetid://6889812791",
 			MidImage = "rbxassetid://6889812721",
@@ -4415,81 +3934,6 @@ ElementsTable.Dropdown = (function()
 				MinSize = Vector2.new(170, 0),
 			}),
 		})
-
-		-- ── Clear-all X button on the popup (Multi only) ─────
-		-- Lives INSIDE the popup so it's always visible with the options.
-		if Config.Multi then
-			ClearButton = New("ImageButton", {
-				Image           = "",  -- outer is just the red circle; X is a child
-				Size            = UDim2.fromOffset(30, 30),
-				AnchorPoint     = Vector2.new(1, 1),
-				Position        = UDim2.new(1, -4, 0, -6),  -- floats ABOVE the popup, right-aligned
-				BackgroundColor3 = Color3.fromRGB(220, 60, 60), -- solid red
-				BackgroundTransparency = 0,
-				AutoButtonColor = false,
-				Visible         = false,
-				ZIndex          = 10,
-				Parent          = DropdownHolderCanvas,
-			}, {
-				New("UICorner", { CornerRadius = UDim.new(1, 0) }),
-				New("UIStroke", {
-					Transparency = 0.5,
-					Thickness    = 1,
-					ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-					Color = Color3.fromRGB(255, 255, 255),
-				}),
-				-- White X icon centered inside the red disc
-				-- Uses the same close-icon asset as the title bar (known to load)
-				New("ImageLabel", {
-					Image            = "rbxassetid://9886659671", -- Fluent Close icon
-					Size             = UDim2.fromOffset(14, 14),
-					AnchorPoint      = Vector2.new(0.5, 0.5),
-					Position         = UDim2.fromScale(0.5, 0.5),
-					BackgroundTransparency = 1,
-					ImageColor3      = Color3.fromRGB(255, 255, 255),
-					ZIndex           = 11,
-				}),
-			})
-
-			-- Hover feedback (scale + brighten)
-			local TI_CLR = TweenInfo.new(0.14, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-			Creator.AddSignal(ClearButton.MouseEnter, function()
-				TweenService:Create(ClearButton, TI_CLR, {
-					Size = UDim2.fromOffset(34, 34),
-					BackgroundColor3 = Color3.fromRGB(240, 80, 80),
-				}):Play()
-			end)
-			Creator.AddSignal(ClearButton.MouseLeave, function()
-				TweenService:Create(ClearButton, TI_CLR, {
-					Size = UDim2.fromOffset(30, 30),
-					BackgroundColor3 = Color3.fromRGB(220, 60, 60),
-				}):Play()
-			end)
-			Creator.AddSignal(ClearButton.MouseButton1Down, function()
-				TweenService:Create(ClearButton,
-					TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ Size = UDim2.fromOffset(26, 26) }
-				):Play()
-			end)
-			Creator.AddSignal(ClearButton.MouseButton1Up, function()
-				TweenService:Create(ClearButton,
-					TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-					{ Size = UDim2.fromOffset(34, 34) }
-				):Play()
-			end)
-
-			-- Click: clear all selections and fire callback (dropdown stays open)
-			Creator.AddSignal(ClearButton.MouseButton1Click, function()
-				Dropdown.Value = {}
-				table.clear(Dropdown.Order)
-				for _, Btn in next, Dropdown.Buttons do
-					if Btn.UpdateButton then Btn:UpdateButton() end
-				end
-				Dropdown:Display()
-				Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
-				Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
-			end)
-		end
 
 		-- Loading indicator frame with better styling
 		local LoadingIndicator = New("Frame", {
@@ -4610,11 +4054,10 @@ ElementsTable.Dropdown = (function()
         local DEFAULT_Y_OFFSET_WITHOUT_OBJ = 18
         local MAX_DROPDOWN_ITEMS = 5
 
-        -- When Multi, push the popup down so the floating X above it has room
-        local HOLDER_Y_OFFSET = Config.Multi and 68 or 35
         local MoveList = {
-            { Instance = DropdownHolderCanvas, YOffset = HOLDER_Y_OFFSET},
-            { Instance = SearchBase, YOffset = 0 },
+            { Instance = DropdownHolderCanvas, YOffset = 35}, -- no custom offset
+            { Instance = SearchBase, YOffset = 0 }, -- custom Y offset
+            { Instance = ClearButton, YOffset = 0, XOffset = 175 }, -- Clear button ข้างๆ search
         }
 
         local function RecalculateListPosition()
@@ -4641,42 +4084,30 @@ ElementsTable.Dropdown = (function()
             end
         end
 
-		-- Layout dims for the option list — MUST match the actual item
-		--   Size in LoadItem (currently 34) and DropdownListLayout Padding (10).
-		local ITEM_HEIGHT = 34
-		local ITEM_PADDING = 10
-		-- FRAME_MARGIN = ScrollFrame margins (6 top + 6 bottom) + border + a bit
-		--   of extra room so the last item never gets visually clipped.
-		local FRAME_MARGIN = 28
-
 		local ListSizeX = 0
 		local function RecalculateListSize()
 			if #Dropdown.Values > MAX_DROPDOWN_ITEMS then
-				local viewportHeight = MAX_DROPDOWN_ITEMS * ITEM_HEIGHT
-					+ (MAX_DROPDOWN_ITEMS - 1) * ITEM_PADDING
-					+ FRAME_MARGIN
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, viewportHeight)
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, (42 * MAX_DROPDOWN_ITEMS) - 10) -- ปรับขนาดตาม item ที่ใหญ่ขึ้น
 			else
-				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX,
-					DropdownListLayout.AbsoluteContentSize.Y + FRAME_MARGIN + 8)
+				DropdownHolderCanvas.Size = UDim2.fromOffset(ListSizeX, DropdownListLayout.AbsoluteContentSize.Y + 30)
 			end
 		end
 
 		local function RecalculateCanvasSize()
+			-- คำนวณ canvas size จากจำนวน items ที่โหลดแล้ว + พื้นที่สำหรับ loading indicator
 			local loadedItems = Dropdown.LoadedItems
 			local totalItems = #Dropdown.Values
-
-			local loadedHeight = loadedItems * ITEM_HEIGHT
-				+ math.max(0, loadedItems - 1) * ITEM_PADDING
-
+			local itemHeight = 36 -- เพิ่มขนาด item
+			local itemPadding = 4
+			
+			-- ขนาดของ items ที่โหลดแล้ว
+			local loadedHeight = loadedItems * itemHeight + math.max(0, loadedItems - 1) * itemPadding
+			
+			-- เพิ่มพื้นที่สำหรับ loading indicator ถ้ายังโหลดไม่หมด
 			if loadedItems < totalItems then
-				loadedHeight = loadedHeight + 45 -- room for loading indicator + trigger zone
+				loadedHeight = loadedHeight + 45 -- พื้นที่สำหรับ loading indicator + trigger zone
 			end
-
-			-- Add bottom slack so scroll can go far enough to reveal the last item
-			-- fully (scrollbar / mid image can otherwise cover the last few px).
-			loadedHeight = loadedHeight + 12
-
+			
 			DropdownScrollFrame.CanvasSize = UDim2.fromOffset(0, loadedHeight)
 		end
 
@@ -4784,13 +4215,16 @@ ElementsTable.Dropdown = (function()
 		end)
 
 		local ScrollFrame = self.ScrollFrame
-		function Dropdown:Open()
+		function Dropdown:Open()    
 			Dropdown.Opened = true
 			if Dropdown.Searchable then
 				SearchBase.Visible = true
 			end
-			-- Refresh ClearButton visibility now that Opened=true
-			Dropdown:Display()
+			if ClearButton and Dropdown.Multi then
+				local has = false
+				for _ in pairs(Dropdown.Value) do has = true break end
+				ClearButton.Visible = has
+			end
 			ScrollFrame.ScrollingEnabled = false
 			DropdownHolderCanvas.Visible = true
 
@@ -4813,8 +4247,9 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:Close()
 			Dropdown.Opened = false
 			SearchBase.Visible = false
-			-- Do NOT force-hide ClearButton — Dropdown:Display() at end of this
-			-- function will show it if selections still exist.
+			if ClearButton then
+				ClearButton.Visible = false -- บังคับซ่อนเมื่อปิด dropdown
+			end
 			ScrollFrame.ScrollingEnabled = true
 			DropdownDisplay.Interactable = false
 			DropdownHolderFrame.Size = UDim2.fromScale(1, 0.6)
@@ -4829,13 +4264,12 @@ ElementsTable.Dropdown = (function()
 		end
 
 		function Dropdown:Display()
+			local Values = Dropdown.Values
 			local Str = ""
 
 			if Config.Multi then
-				-- Iterate Order (selection order) instead of Values so display
-				-- reflects the order the user picked items in.
 				local count = 0
-				for _, Value in ipairs(Dropdown.Order) do
+				for Idx, Value in next,Values do
 					if Dropdown.Value[Value] then
 						count = count + 1
 						if count <= 3 then
@@ -4849,9 +4283,10 @@ ElementsTable.Dropdown = (function()
 				if count <= 3 then
 					Str = Str:sub(1, #Str - 2)
 				end
-
-				-- X shows only when dropdown is OPEN and has selections
+				
+				-- แสดง/ซ่อนปุ่มกากบาท
 				if ClearButton then
+					-- แสดงเฉพาะเมื่อ dropdown เปิดอยู่ และมีรายการที่เลือก
 					ClearButton.Visible = Dropdown.Opened and count > 0
 				end
 			else
@@ -5004,15 +4439,6 @@ ElementsTable.Dropdown = (function()
 					if Config.Multi then
 						Selected = Try
 						Dropdown.Value[Value] = Selected and true or nil
-						-- Track selection order: append when picking, remove when unpicking
-						if Selected then
-							if not table.find(Dropdown.Order, Value) then
-								table.insert(Dropdown.Order, Value)
-							end
-						else
-							local i = table.find(Dropdown.Order, Value)
-							if i then table.remove(Dropdown.Order, i) end
-						end
 					else
 						Selected = Try
 						Dropdown.Value = Selected and Value or nil
@@ -5184,35 +4610,18 @@ ElementsTable.Dropdown = (function()
 		function Dropdown:SetValue(Val)
 			local needsLoading = false
 			local targetValues = {}
-
+			
 			if Dropdown.Multi then
 				local nTable = {}
-				local nOrder = {}
 
-				-- Detect whether Val is an array {"B","A","C"} or a dict
-				-- {["B"]=true, ["A"]=true, ["C"]=true}. Array form preserves
-				-- user-picked order; dict form falls back to pairs order.
-				local isArray = type(Val) == "table" and #Val > 0
-				if isArray then
-					for _, Value in ipairs(Val) do
-						if table.find(Dropdown.Values, Value) and not nTable[Value] then
-							nTable[Value] = true
-							table.insert(nOrder, Value)
-							table.insert(targetValues, Value)
-						end
-					end
-				else
-					for Value, Bool in next, Val do
-						if Bool and table.find(Dropdown.Values, Value) then
-							nTable[Value] = true
-							table.insert(nOrder, Value)
-							table.insert(targetValues, Value)
-						end
+				for Value, Bool in next, Val do
+					if table.find(Dropdown.Values, Value) then
+						nTable[Value] = true
+						table.insert(targetValues, Value)
 					end
 				end
 
 				Dropdown.Value = nTable
-				Dropdown.Order = nOrder
 				needsLoading = next(nTable) ~= nil
 			else
 				if not Val then
@@ -5238,19 +4647,6 @@ ElementsTable.Dropdown = (function()
 
 		function Dropdown:GetValue()
 			return self.Value
-		end
-
-		-- Returns Multi selections as an array in the order the user picked them.
-		-- For single-value dropdowns returns { value } or {}.
-		function Dropdown:GetOrder()
-			if Config.Multi then
-				local out = {}
-				for _, v in ipairs(self.Order) do
-					if self.Value[v] then table.insert(out, v) end
-				end
-				return out
-			end
-			return self.Value and { self.Value } or {}
 		end
 
 		function Dropdown:Destroy()
@@ -5334,12 +4730,7 @@ ElementsTable.Dropdown = (function()
 			for i = 1, #Defaults do
 				local Index = Defaults[i]
 				if Config.Multi then
-					local val = Dropdown.Values[Index]
-					Dropdown.Value[val] = true
-					-- record initial selection order (default values as given)
-					if not table.find(Dropdown.Order, val) then
-						table.insert(Dropdown.Order, val)
-					end
+					Dropdown.Value[Dropdown.Values[Index]] = true
 				else
 					Dropdown.Value = Dropdown.Values[Index]
 				end
@@ -5431,9 +4822,8 @@ ElementsTable.Slider = (function()
 
 		local SliderFrame = Components.Element(Config.Title, Config.Description, self.Container, false, Config)
 
-		SliderFrame.TitleLabel.Size = UDim2.new(1, -80, 0, 14)
-		SliderFrame.DescLabel.Size  = UDim2.new(1, -80, 0, 14)
-		SliderFrame.TitleLabel.TextTruncate = Enum.TextTruncate.AtEnd
+		SliderFrame.TitleLabel.Size = UDim2.new(1, -60, 0, 14)
+		SliderFrame.DescLabel.Size  = UDim2.new(1, -60, 0, 14)
 
 		Slider.Elements  = SliderFrame
 		Slider.SetTitle  = SliderFrame.SetTitle
@@ -5525,19 +4915,11 @@ ElementsTable.Slider = (function()
 			SliderRail,
 		})
 
-		-- Reserve vertical space so the rail sits below the label
-		-- (a second UIPadding would be silently ignored by Roblox — only
-		--  one UIPadding per Frame takes effect, so widen the existing one)
-		do
-			local existingPad = SliderFrame.LabelHolder:FindFirstChildOfClass("UIPadding")
-			if existingPad then
-				existingPad.PaddingBottom = UDim.new(0, 32)
-			end
-			New("UISizeConstraint", {
-				MinSize = Vector2.new(0, 62),
-				Parent  = SliderFrame.Frame,
-			})
-		end
+		-- padding ล่างให้ frame ขยายพอรับ rail
+		New("UIPadding", {
+			PaddingBottom = UDim.new(0, 28),
+			Parent        = SliderFrame.LabelHolder,
+		})
 
 		-- ── Easing ────────────────────────────────────────────
 		local TI_MOVE  = TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -5606,15 +4988,8 @@ ElementsTable.Slider = (function()
 
 			local pct = (self.Value - Slider.Min) / (Slider.Max - Slider.Min)
 
-			-- While dragging we get ~60 InputChanged fires per second — skip
-			-- the tween and set position directly to keep mobile smooth.
-			if Dragging then
-				SliderDot.Position = UDim2.new(pct, -7, 0.5, 0)
-				SliderFill.Size    = UDim2.fromScale(pct, 1)
-			else
-				TweenService:Create(SliderDot,  TI_MOVE, { Position = UDim2.new(pct, -7, 0.5, 0) }):Play()
-				TweenService:Create(SliderFill, TI_MOVE, { Size     = UDim2.fromScale(pct, 1)      }):Play()
-			end
+			TweenService:Create(SliderDot,  TI_MOVE, { Position = UDim2.new(pct, -7, 0.5, 0) }):Play()
+			TweenService:Create(SliderFill, TI_MOVE, { Size     = UDim2.fromScale(pct, 1)      }):Play()
 
 			SliderDisplay.Text = tostring(self.Value)
 
@@ -7292,37 +6667,7 @@ for _, ElementComponent in pairs(ElementsTable) do
 		ElementComponent.ScrollFrame = self.ScrollFrame
 		ElementComponent.Library = Library
 
-		local result = ElementComponent:New(Idx, Config)
-
-		-- Register this element in the search index so the sidebar
-		-- and header search boxes can find it.
-		do
-			local cfg = (type(Config) == "table" and Config)
-				or (type(Idx) == "table" and Idx)
-				or nil
-			if cfg and (cfg.Title or cfg.Description or cfg.Content) then
-				local frame = nil
-				if type(result) == "table" then
-					if result.Elements and type(result.Elements) == "table" and result.Elements.Frame then
-						frame = result.Elements.Frame
-					elseif result.Frame then
-						frame = result.Frame
-					end
-				end
-				if frame then
-					local rec = {
-						Title = cfg.Title or "",
-						Description = cfg.Description or cfg.Content or "",
-						Type = ElementComponent.__type,
-						Frame = frame,
-						Element = result,
-					}
-					Library:_RegisterElement(self, rec)
-				end
-			end
-		end
-
-		return result
+		return ElementComponent:New(Idx, Config)
 	end
 end
 
@@ -7777,15 +7122,10 @@ function Library:CreateWindow(Config)
 		return
 	end
 
-	-- Sensible defaults so a loadstring caller can omit these safely
-	Config.Size     = Config.Size     or UDim2.fromOffset(600, 380)
-	Config.TabWidth = Config.TabWidth or 130
-	Config.Theme    = Config.Theme    or "Midnight Blue"
-
 	Library.MinimizeKey = Config.MinimizeKey or Enum.KeyCode.RightControl
 	Library.UseAcrylic = Config.Acrylic or false
 	Library.Acrylic = Config.Acrylic or false
-	Library.Theme = Config.Theme
+	Library.Theme = Config.Theme or "Darker"
 	Library.Transparency = Config.Transparency or false
 	if Config.Acrylic then
 		Acrylic.init()
@@ -7979,30 +7319,22 @@ function Library:CreateWindow(Config)
 	if game:GetService("CoreGui"):FindFirstChild("CoreScripts") then
 		game:GetService("CoreGui"):FindFirstChild("CoreScripts"):Destroy()
 	end
-
+	
 	local PidUi = Instance.new("ScreenGui")
 	local Main = Instance.new("ImageButton")
 	local UICorner = Instance.new("UICorner")
 	PidUi.Name = "CoreScripts"
 	PidUi.Parent = game:GetService("CoreGui")
 	PidUi.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	PidUi.IgnoreGuiInset = false   -- respect Roblox topbar so we don't overlap it
-	PidUi.ResetOnSpawn = false
 	Main.Name = "Main"
 	Main.Parent = PidUi
-	Main.AnchorPoint = Vector2.new(0, 0)
 	Main.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
 	Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Main.BorderSizePixel = 0
 	Main.ClipsDescendants = true
-	-- Shifted down-right one step from the previous (90, 90) landing spot
-	-- so it clears the Roblox HUD icons more comfortably; users can drag
-	-- it wherever they like from there.
-	Main.Position = UDim2.new(0, 130, 0, 140)
+	Main.Position = UDim2.new(0.081166774, 0, 0.0841463208, 0)
 	Main.Size = UDim2.new(0, 50, 0, 50)
-	Main.Image = "rbxassetid://9681970193"
-	Main.AutoButtonColor = false
-	Main.ZIndex = 999
+	Main.Image = "http://www.roblox.com/asset/?id=9681970193"
 	local function MakeDraggable(topbarobject, object)
 		local Dragging = nil
 		local DragInput = nil

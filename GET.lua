@@ -2201,24 +2201,28 @@ Components.Section = function(Title, Parent)
 	local Section = {}
 
 	-- Chip-style header: small accent bar + bold title, no line divider.
-	local HEADER_TOP    = 10   -- gap above header row
-	local HEADER_H      = 22   -- header row height
-	local HEADER_TO_BODY = 10  -- gap between header row and first element
-	local BODY_BOTTOM   = 4    -- gap below last element in this section
+	local HEADER_TOP     = 10   -- gap above header row
+	local HEADER_H       = 22   -- header row height
+	local HEADER_TO_BODY = 10   -- gap between header row and first element
+	local BODY_BOTTOM    = 8    -- gap below last element in this section
 
-	local HEADER_AREA   = HEADER_TOP + HEADER_H + HEADER_TO_BODY
-	-- = 10 + 22 + 10 = 42
+	local HEADER_AREA    = HEADER_TOP + HEADER_H + HEADER_TO_BODY
 
 	Section.Layout = New("UIListLayout", {
 		Padding = UDim.new(0, 6),
+		SortOrder = Enum.SortOrder.LayoutOrder,
 	})
 
+	-- Container auto-fits its children so wrapped Thai descriptions never
+	-- get clipped, and the next section can't overlap it.
 	Section.Container = New("Frame", {
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		Position = UDim2.fromOffset(0, HEADER_AREA),
 		BackgroundTransparency = 1,
 	}, {
 		Section.Layout,
+		New("UIPadding", { PaddingBottom = UDim.new(0, BODY_BOTTOM) }),
 	})
 
 	-- Small accent "bar" chip on the left of the title
@@ -2256,9 +2260,11 @@ Components.Section = function(Title, Parent)
 		},
 	})
 
+	-- Root auto-fits too — no manual math needed.
 	Section.Root = New("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, HEADER_AREA + BODY_BOTTOM),
+		Size = UDim2.new(1, 0, 0, HEADER_AREA),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 7,
 		Parent = Parent,
 	}, {
@@ -2266,11 +2272,6 @@ Components.Section = function(Title, Parent)
 		Section.HeaderLabel,
 		Section.Container,
 	})
-
-	Creator.AddSignal(Section.Layout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
-		Section.Container.Size = UDim2.new(1, 0, 0, Section.Layout.AbsoluteContentSize.Y)
-		Section.Root.Size = UDim2.new(1, 0, 0, Section.Layout.AbsoluteContentSize.Y + HEADER_AREA + BODY_BOTTOM)
-	end)
 
 	return Section
 end
